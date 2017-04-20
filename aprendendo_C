@@ -1,0 +1,53 @@
+Introdução à Linguagem C
+
+• Variáveis: é uma posição de memória cujo conteúdo pode ser modificado durante a execução de um programa. 
+São referenciadas por um identificador e e defini o tipo de valor pelo definição do tipo de dado.
+
+• Identificador: é, basicamente, o "nome" que se dá a variavel referenciada. 
+Lembrando que:
+- O primeiro caractere do identificador não pode ser um dígito. 
+- É uma boa prática se escolher um identificador que tenha alguma relação com a sua finalidade. 
+- Os compiladores da linguagem C fazem distinção entre letras maiusculas e minúsculas.
+- Não utilizar palavras reservadas do C para identificadores. (ex: for, while, ... )
+
+• Tipo de Dados: 
+
+........................
+
+TIPOS DE DADOS
+• char: caracteres codificados no código ASCII. (1 byte)
+• int: números inteiros de –32768 a 32767. (2 bytes, %d)
+• long/long int: números inteiros de –65536 a 65535 (4 bytes)
+• float: números reais de –3,4x10^38 a –3,4x10^-38 e 3,4x10^-38 a 3,4x10^38 (4 bytes, %f ou %.2f)
+• double: números reais de –1,7x10^308 a -1,7x10^-308 e 1,7x10^-308 a 1,7x10^308 (8 bytes)
+
+ÁREA DE UM CIRCULO
+Para calcular a área de uma circunferência é: area = pi x raio². 
+Considerando que para este problema que π = 3.14159
+
+VOLUME DE UMA ESFERA
+Para calcular o volume de uma esfera é: volume = (4/3) * pi * raio³. 
+Considerando que para este problema que π = 3.14159
+
+EXPONENCIAÇÃO
+Em C usamos a função pow(x, y) que seria X elevado a Y. 
+Por exemplo pow(2, 3) seria igual 2³ e retornaria 8.
+
+COMO SABER SE X, Y E Z FORMAM UM TRIANGULO?
+• (X + Y) > Z e (X + Z) > Y e (Y + Z) > X
+• equilátero? todos os lados iguais - ((X == Y) e (Y == Z))
+• isósceles? dois lados iguais - ((X == Y) ou (X == Z) ou (Z == Y))
+• escaleno? nenhum lado igual.
+
+PERIMETRO DE UM TRIÂNGULO
+perimetro = LADO A + LADO B + LADO C
+
+AREA DO TRAPÉZIO
+area = ((base A + base B) * altura) / 2
+
+BIBLIOTECA STRING.H
+• strlen(string): retorna o tamanho da string.
+• strcpy(string1, string2): copia a string1 na string2.
+• strcat(string1, string2): uni a string1 e a string2.
+• strcmp(string1, string2): comparando duas strings(Se forem iguais retorna 0, se string1 for 
+maior retorna um valor menor que 0, e se string2 for maior retorna um valor maior que 0.

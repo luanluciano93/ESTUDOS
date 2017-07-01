@@ -1,12 +1,10 @@
---[[ 	
-	
+--[[
 	<!-- DUCA Event -->
 	<event type="login" name="Duca-Login" event="script" value="DUCA_creaturescript.lua"/>
 	<event type="logout" name="Duca-Logout" event="script" value="DUCA_creaturescript.lua"/>
 	<event type="preparedeath" name="Duca-Death" event="script" value="DUCA_creaturescript.lua"/>
 	<event type="combat" name="Duca-Combat" event="script" value="DUCA_creaturescript.lua"/>
-
-]]--	
+]]--
 	
 dofile('data/lib/DUCA.lua')
 

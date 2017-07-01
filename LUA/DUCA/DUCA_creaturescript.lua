@@ -16,7 +16,6 @@ function onLogin(cid)
 end
 
 function onLogout(cid)
-
 	if getPlayerStorageValue(cid, DUCA.STORAGE_TEAM) > 0 then
 		doPlayerSendTextMessage(cid, MESSAGE_INFO_DESCR, "You can not logout now!")
 		return false
@@ -26,17 +25,12 @@ end
 
 function onPrepareDeath(cid, deathList, lastHitKiller, mostDamageKiller)
 
-	local pontos = {
-		[1] = 10,
-		[2] = 10,
-		[3] = 20,
-		[4] = 30,
-	}
+	local pontos = {[1] = 1, [2] = 1, [3] = 10, [4] = 30,}
 
 	if getPlayerStorageValue(cid, DUCA.STORAGE_TEAM) > 0 then
 		local pontos_ganhos = pontos[getPlayerStorageValue(cid, DUCA.STORAGE_TEAM)]
 		setPlayerStorageValue(deathList[1], DUCA.TOTAL_PONTOS, getPlayerStorageValue(deathList[1], DUCA.TOTAL_PONTOS) + pontos_ganhos)
-		doPlayerSendTextMessage(deathList[1], MESSAGE_STATUS_CONSOLE_BLUE, "You have ".. getPlayerStorageValue(deathList[1], DUCA.TOTAL_PONTOS) .." titan points.")
+		doPlayerSendTextMessage(deathList[1], MESSAGE_STATUS_CONSOLE_BLUE, "You have ".. getPlayerStorageValue(deathList[1], DUCA.TOTAL_PONTOS) .." duca points.")
 		DUCA.removePlayer(cid)
 		DUCA.updateRank()
 	end

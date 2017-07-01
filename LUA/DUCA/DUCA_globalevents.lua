@@ -1,4 +1,7 @@
--- <globalevent name="Duca" time="00:00:00" script="DUCA_globalevents.lua" />
+--[[
+	<!-- DUCA Event -->
+	<globalevent name="Duca" time="00:00:00" script="DUCA_globalevents.lua" />
+]]--
 
 dofile('data/lib/DUCA.lua')
 

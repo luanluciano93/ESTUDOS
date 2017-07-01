@@ -22,6 +22,13 @@ function onStepIn(cid, item, position, fromPosition)
 		return false
 	end
 
+	for _, uid in pairs(getPlayersOnline()) do
+		if getPlayerIp(cid) == getPlayerIp(uid) and getPlayerStorageValue(uid, DUCA.STORAGE_TEAM) > 0 then
+			doTeleportThing(cid, fromPosition)
+			return false
+		end
+	end
+	
 	local team = DUCA.balanceTeam()
 	DUCA.addPlayerinTeam(cid, team)
 

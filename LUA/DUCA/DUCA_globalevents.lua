@@ -5,7 +5,7 @@
 
 dofile('data/lib/DUCA.lua')
 
-function onTime(interval)
+function onTime(interval) -- se der bug use: function onTimer(interval)
 	DUCA.teleportCheck()
 	return true
 end

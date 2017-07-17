@@ -39,10 +39,10 @@ end
 
 function onCombat(cid, target)
 	if isPlayer(cid) and isPlayer(target) then
-		if (getPlayerStorageValue(cid, DUCA.STORAGE_TEAM) == 1  and getPlayerStorageValue(target, DUCA.STORAGE_TEAM) == 1) or 
-			(getPlayerStorageValue(cid, DUCA.STORAGE_TEAM) == 2  and getPlayerStorageValue(target, DUCA.STORAGE_TEAM) == 2) or
-			(getPlayerStorageValue(cid, DUCA.STORAGE_TEAM) == 3  and getPlayerStorageValue(target, DUCA.STORAGE_TEAM) == 3) then
-			return false
+		if getPlayerStorageValue(cid, DUCA.STORAGE_TEAM) > 0 then
+			if getPlayerStorageValue(cid, DUCA.STORAGE_TEAM) == getPlayerStorageValue(target, DUCA.STORAGE_TEAM) then
+				return false
+			end
 		end
 	end
 	return true

@@ -9,3 +9,21 @@
 <event type="statschange" name="RewardChestStats" event="script" value="rewardchest_pontos.lua"/>
 <event type="death" name="RewardChestDeath" event="script" value="rewardchest_boss.lua"/>
 <event type="statschange" name="RewardChestMonster" event="script" value="rewardchest_boss.lua"/>
+
+• Caso não se retire o loot no Reward Container ele ficará disponível na Reward Chest durante sete dias, 
+contados a partir do minuto que o boss foi morto. Após este tempo, ele será destruído.
+• O jogador poderá pegar o loot na hora, no corpo da criatura ou se preferir depois no Reward Chest na Adventurers Guild.
+
+• Nível Participação: ataque, bloqueio e suporte.
+
+Constituição do Loot	                                              Pontuação	   Nível
+Item Comum	                                                        10~40pts	   1
+Item Comum + Item Semi raro	                                        40~60pts	   2
+Item Comum + Item Semi raro + Item Raro	                            60~80pts	   3
+Item Comum + Item Semi raro + Item Raro + Item Muito raro	          80~95pts	   4
+Item Comum + Item Semi raro + Item Raro + Item que Sempre cai	      96~100pts	   5
+
+• Bosses que fazem parte deste Sistema: 
+The Welter, White Pale, Tyrn, Hirintror, Zushuka, Ocyakao, Shlorg, The Pale Count, Furyosa, Mad Mage, Raging Mage, Ferumbras, 
+Morgaroth, Ghazbaran, Orshabaal, Zulazza the Corruptor, Chizzoron the Distorter, The Mutated Pumpkin, Bibby Bloodbath, GazHaragoth, 
+Tanjis, Jaul e Obujos.

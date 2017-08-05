@@ -7,14 +7,14 @@ local function addRewardLoot(uid, bossName, tabela_reward)
 	local msg = "The following items are available in your reward chest:"
 	local chest = doCreateItemEx(REWARDCHEST.rewardBagId)
 
-	--chest:setAttribute(ITEM_ATTRIBUTE_DESCRIPTION, 'Reward System has kill the boss '.. bossName ..'.')
+	doItemSetAttribute(chest, "Reward System has kill the boss ".. bossName ..".")
 
 	if table.maxn(tabela_reward) > 0 then
 		for x = 1, table.maxn(tabela_reward) do
 			local rand = math.random(100)
 			if rand <= tabela_reward[x][3] then
 				doAddContainerItem(chest, tabela_reward[x][1], math.random(tabela_reward[x][2]))
-				msg = msg .. " "..getItemNameById(tabela_reward[x][1])..","
+				msg = msg .. " " ... if tabela_reward[x][2] > 1 then tabela_reward[x][2] > 1 end ..." "..getItemNameById(tabela_reward[x][1])..","
 			end
 		end
 		doPlayerSendTextMessage(uid, MESSAGE_INFO_DESCR, msg .. " and ".. money .." platinum coins.")
@@ -33,11 +33,11 @@ end
 local function addLoot(tabela_loot, tabela_reward, all_loot)
 	if table.maxn(tabela_loot) > 0 then
 		if all_loot then
-			for index = 1, table.maxn(tabela_loot) do
-				table.insert(tabela_reward, tabela_loot[index])
+			for x = 1, table.maxn(tabela_loot) do
+				table.insert(tabela_reward, tabela_loot[x])
 			end
 		else
-			table.insert(tabela_reward, tabela_loot[math.random(#tabela_loot)])
+			table.insert(tabela_reward, tabela_loot[math.random(table.maxn(tabela_loot))])
 		end
 	end
 
@@ -58,16 +58,15 @@ local function rewardChestSystem(bossName)
 
 	local porcentagem = math.ceil(getPlayerStorageValue(players[1], boss.storage))
 
-	for i = 1, table.maxn(players) do		
+	for i = 1, table.maxn(players) do
 
 		local tabela_reward = {}
 		local pontos = getPlayerStorageValue(players[i], boss.storage)
-		
+
 		if i == 1 then
 			addLoot(boss.comum, tabela_reward, false)
 			addLoot(boss.semi_raro, tabela_reward, false)
 			addLoot(boss.raro, tabela_reward, false)
-			addLoot(boss.muito_raro, tabela_reward, false)
 			addLoot(boss.sempre, tabela_reward, true)
 		elseif i >= 2 and pontos >= math.ceil((porcentagem * 0.8)) then
 			addLoot(boss.comum, tabela_reward, false)

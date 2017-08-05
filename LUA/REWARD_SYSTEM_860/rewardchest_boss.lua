@@ -101,7 +101,7 @@ function onStatsChange(cid, attacker, type, combat, value)
 	if isMonster(cid) and type == STATSCHANGE_HEALTHLOSS then
 		local boss = REWARDCHEST.bosses[getCreatureName(cid):lower()]
 		if boss then
-			setPlayerStorageValue(attacker, boss.storage, getPlayerStorageValue(attacker, boss.storage) + math.ceil((value / REWARDCHEST.formula.block)))
+			setPlayerStorageValue(attacker, boss.storage, getPlayerStorageValue(attacker, boss.storage) + math.ceil((value / REWARDCHEST.formula.hit)))
 		end
 	end
 	return true

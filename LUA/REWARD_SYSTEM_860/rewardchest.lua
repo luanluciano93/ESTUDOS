@@ -3,7 +3,7 @@
 REWARDCHEST = {
 	rewardBagId = 2595,
 	formula = {hit = 3, block = 1, suport = 9},
-    storageExaust = 60000,
+	storageExaust = 60000,
 	town_id = 1,
 	bosses = {
 		["ghazbaran"] =

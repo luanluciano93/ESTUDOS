@@ -31,6 +31,5 @@ function onStatsChange(cid, attacker, type, combat, value)
 			end
 		end
 	end
-	
 	return true
 end

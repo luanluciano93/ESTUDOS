@@ -1,0 +1,5 @@
+<!-- Add it in monsters -->
+<script> 
+  <event name="RewardChestDeath"/>
+  <event name="RewardChestMonster"/>
+</script>

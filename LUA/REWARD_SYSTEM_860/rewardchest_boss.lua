@@ -1,6 +1,6 @@
 -- Sistema de recompensa criado por luanluciano93
 
-dofile('data/eventos/rewardchest.lua')
+dofile('data/sistemas/rewardchest.lua')
 
 local function addRewardLoot(uid, bossName, tabela_reward)
 	local money = math.random(10, 40)

@@ -14,7 +14,7 @@ local function addRewardLoot(uid, bossName, tabela_reward)
 			local rand = math.random(100)
 			if rand <= tabela_reward[x][3] then
 				doAddContainerItem(chest, tabela_reward[x][1], math.random(tabela_reward[x][2]))
-				msg = msg .. " " ... if tabela_reward[x][2] > 1 then tabela_reward[x][2] > 1 end ..." "..getItemNameById(tabela_reward[x][1])..","
+				msg = msg .. " ".. (tabela_reward[x][2] > 1 and tabela_reward[x][2] > 1 or "") ..." "..getItemNameById(tabela_reward[x][1])..","
 			end
 		end
 		doPlayerSendTextMessage(uid, MESSAGE_INFO_DESCR, msg .. " and ".. money .." platinum coins.")

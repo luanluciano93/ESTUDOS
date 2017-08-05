@@ -7,7 +7,7 @@ local function addRewardLoot(uid, bossName, tabela_reward)
 	local msg = "The following items are available in your reward chest:"
 	local chest = doCreateItemEx(REWARDCHEST.rewardBagId)
 
-	doItemSetAttribute(chest, "Reward System has kill the boss ".. bossName ..".")
+	doItemSetAttribute(chest, "description", "Reward System has kill the boss ".. bossName ..".")
 
 	if table.maxn(tabela_reward) > 0 then
 		for x = 1, table.maxn(tabela_reward) do

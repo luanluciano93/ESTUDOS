@@ -3,3 +3,9 @@
   <event name="RewardChestDeath"/>
   <event name="RewardChestMonster"/>
 </script>
+
+<!-- Sistema de recompensa criado por luanluciano93 -->
+<event type="login" name="RewardChestLogin" event="script" value="rewardchest_pontos.lua"/>
+<event type="statschange" name="RewardChestStats" event="script" value="rewardchest_pontos.lua"/>
+<event type="death" name="RewardChestDeath" event="script" value="rewardchest_boss.lua"/>
+<event type="statschange" name="RewardChestMonster" event="script" value="rewardchest_boss.lua"/>

@@ -20,13 +20,13 @@ function onStatsChange(cid, attacker, type, combat, value)
 			setPlayerStorageValue(cid, REWARDCHEST.storageExaust, os.time() + 5)
 		end
 	elseif (isPlayer(attacker) and (type == STATSCHANGE_HEALTHGAIN or type == STATSCHANGE_MANAGAIN) and (getCreatureHealth(cid) < getCreatureMaxHealth(cid)) and (getPlayerStorageValue(cid, REWARDCHEST.storageExaust) >= os.time())) then
-		for key, value in pairs(REWARDCHEST.bosses) do
-			if getPlayerStorageValue(cid, value.storage) > 0 then
+		for key, valor in pairs(REWARDCHEST.bosses) do
+			if getPlayerStorageValue(cid, valor.storage) > 0 then
 				if getCreatureHealth(cid) + value > getCreatureMaxHealth(cid) then
 					local add = getCreatureMaxHealth(cid) - getCreatureHealth(cid)
-					setPlayerStorageValue(attacker, value.storage, getPlayerStorageValue(attacker, value.storage) + math.ceil((add / REWARDCHEST.formula.suport)))
+					setPlayerStorageValue(attacker, valor.storage, getPlayerStorageValue(attacker, valor.storage) + math.ceil((add / REWARDCHEST.formula.suport)))
 				else
-					setPlayerStorageValue(attacker, value.storage, getPlayerStorageValue(attacker, value.storage) + math.ceil((value / REWARDCHEST.formula.suport)))
+					setPlayerStorageValue(attacker, valor.storage, getPlayerStorageValue(attacker, valor.storage) + math.ceil((value / REWARDCHEST.formula.suport)))
 				end
 			end
 		end

@@ -3,7 +3,7 @@ bpEvent = {
 	TELEPORT = {POSITION = {x = 100, y = 100, z = 7}, MINUTES = 2},
 	ENTER_EVENT_POSITION = {x = 100, y = 100, z = 7},
 	COAL_BASIN_POSITION = {x = 100, y = 100, z = 7, stackpos = 255},
-	STONE = {ID = 1543, POSITION{x = 100, y = 100, z = 7}},
+	STONE = {ID = 1543, POSITION = {x = 100, y = 100, z = 7}},
 	LEVEL_MIN = 80,
 	REWARD_MONEY = {MIN = 1, MAX = 100000},
 	BACKPACK_IDS = {1988, 2245, 5467},

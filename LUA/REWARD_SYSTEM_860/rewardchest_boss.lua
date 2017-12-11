@@ -98,9 +98,9 @@ function onDeath(cid, corpse, killer)
 end
 
 function onStatsChange(cid, attacker, type, combat, value)
-	if isMonster(cid) and type == STATSCHANGE_HEALTHLOSS then
+	if isMonster(cid) and type == STATSCHANGE_HEALTHLOSS and isPlayer(attacker) then
 		local boss = REWARDCHEST.bosses[getCreatureName(cid):lower()]
-		if boss then
+		if boss and attacker then
 			setPlayerStorageValue(attacker, boss.storage, getPlayerStorageValue(attacker, boss.storage) + math.ceil((value / REWARDCHEST.formula.hit)))
 		end
 	end

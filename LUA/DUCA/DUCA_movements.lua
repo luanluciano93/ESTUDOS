@@ -10,6 +10,11 @@ function onStepIn(cid, item, position, fromPosition)
 		return false
 	end
 
+	if getPlayerGroupId(cid) >= 3 then
+		doTeleportThing(cid, DUCA.TEAMS[1].temple)
+		return true
+	end
+	
 	if getPlayerLevel(cid) < DUCA.LEVEL_MIN then
 		doPlayerSendTextMessage(cid, MESSAGE_INFO_DESCR, "You need level " .. DUCA.LEVEL_MIN .. " to enter in Duca event.")
 		doTeleportThing(cid, fromPosition)
@@ -24,6 +29,7 @@ function onStepIn(cid, item, position, fromPosition)
 
 	for _, uid in pairs(getPlayersOnline()) do
 		if getPlayerIp(cid) == getPlayerIp(uid) and getPlayerStorageValue(uid, DUCA.STORAGE_TEAM) > 0 then
+			doPlayerSendTextMessage(cid, MESSAGE_INFO_DESCR, "You already have another player inside the event.")
 			doTeleportThing(cid, fromPosition)
 			return false
 		end

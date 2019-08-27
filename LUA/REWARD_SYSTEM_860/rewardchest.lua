@@ -6,7 +6,7 @@ REWARDCHEST = {
 	storageExaust = 60000,
 	town_id = 1,
 	bosses = {
-		["ghazbaran"] =
+		["ghazbaran"] = -- todo o nome do boss em letras minúsculas.
 		{
 			comum = {
 				{2143, 10, 100}, -- white pearl
@@ -70,7 +70,7 @@ REWARDCHEST = {
 			storage = 65479, 
 		},
 		
-		["orshabaal"] =
+		["orshabaal"] = -- todo o nome do boss em letras minúsculas.
 		{
 			comum = {
 				{2143, 10, 100}, -- white pearl
@@ -118,7 +118,7 @@ REWARDCHEST = {
 			storage = 65480, 
 		},
 		
-		["ferumbras"] =
+		["ferumbras"] = -- todo o nome do boss em letras minúsculas.
 		{
 			comum = {
 				{2143, 10, 100}, -- white pearl
@@ -163,7 +163,7 @@ REWARDCHEST = {
 			
 			storage = 65481, 
 		},
-		["zulazza the corruptor"] =
+		["zulazza the corruptor"] = -- todo o nome do boss em letras minúsculas.
 		{
 			comum = {
 				{2158, 1, 100}, -- blue gem
@@ -193,7 +193,7 @@ REWARDCHEST = {
 			
 			storage = 65482, 
 		},
-		["morgaroth"] =
+		["morgaroth"] = -- todo o nome do boss em letras minúsculas.
 		{
 			comum = {
 				{2143, 10, 100}, -- white pearl

@@ -65,7 +65,24 @@ local function totalProtectionTile()
 end
 
 local function createProtectionTiles()
-	if safezoneTotalPlayers() > 1 then
+	if safezoneTotalPlayers() == 1 then
+		for _, player in ipairs(Game.getPlayers()) do
+			if player:getStorageValue(SAFEZONE.storage) > 0 then
+				player:setStorageValue(SAFEZONE.storage, 0)
+				player:teleportTo(player:getTown():getTemplePosition())
+				player:getPosition():sendMagicEffect(CONST_ME_TELEPORT)
+
+				local itemType = ItemType(SAFEZONE.reward[1])
+				if itemType:getId() ~= 0 then
+					player:sendTextMessage(MESSAGE_EVENT_ADVANCE, "You received ".. SAFEZONE.reward[2] .." ".. itemType:getName() .. " as a reward for first place in the safezone event.")
+					player:addItem(itemType:getId(), SAFEZONE.reward[2])
+				end
+
+				Game.broadcastMessage("SafeZone Event is finish. Congratulation to the player ".. player:getName() .." for being the event champion!", MESSAGE_STATUS_WARNING)
+			end
+		end
+
+	elseif safezoneTotalPlayers() > 1 then
 		local createTiles, totalTiles = 0, totalProtectionTile()
 		local tileX = SAFEZONE.positionEvent.firstTile.x
 		local tileY = SAFEZONE.positionEvent.firstTile.y
@@ -90,9 +107,9 @@ local function createProtectionTiles()
 				end
 			end
 		end
+		addEvent(checkPlayersinProtectionTiles, 4000)
+		addEvent(createProtectionTiles, 6000)
 	end
-	addEvent(checkPlayersinProtectionTiles, 4000)
-	addEvent(createProtectionTiles, 6000)
 end
 
 local function deleteProtectionTiles(position, tileId)
@@ -107,24 +124,6 @@ local function deleteProtectionTiles(position, tileId)
 end
 
 local function checkPlayersinProtectionTiles()
-	if safezoneTotalPlayers() == 1 then
-		for _, player in ipairs(Game.getPlayers()) do
-			if player:getStorageValue(SAFEZONE.storage) > 0 then
-				player:setStorageValue(SAFEZONE.storage, 0)
-				player:teleportTo(player:getTown():getTemplePosition())
-				player:getPosition():sendMagicEffect(CONST_ME_TELEPORT)
-
-				local itemType = ItemType(SAFEZONE.reward[1])
-				if itemType:getId() ~= 0 then
-					player:sendTextMessage(MESSAGE_EVENT_ADVANCE, "You received ".. SAFEZONE.reward[2] .." ".. itemType:getName() .. " as a reward for first place in the safezone event.")
-					player:addItem(itemType:getId(), SAFEZONE.reward[2])
-				end
-
-				Game.broadcastMessage("SafeZone Event is finish. Congratulation to the player ".. player:getName() .." for being the event champion!", MESSAGE_STATUS_WARNING)
-			end
-		end
-	end
-
 	local protectionTileId = SAFEZONE.protectionTileId
 	for _, player in ipairs(Game.getPlayers()) do
 		if player:getStorageValue(SAFEZONE.storage) > 0 then

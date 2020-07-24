@@ -32,34 +32,34 @@ local function doCheckInactivePlayer() -- deleta automaticamente o dados das tab
     local timeStamp = os.time() - (86400 * (inactiveMonthsToDeleteCharacter * 30))
     local totalClear = 0
 
-    local fromClause = "`players` WHERE `group_id` = 1 AND lastlogin <= ".. timeStamp
+	local fromClause = "`players` WHERE `group_id` = 1 AND lastlogin <= ".. timeStamp
 
-    local resultId = db.storeQuery("SELECT COUNT(*) AS `count` FROM ".. fromClause)
-    if resultId ~= false then
-        totalClear = result.getNumber(resultId, 'count')
-        result.free(resultId)
-        if totalClear > 0 then
-            db.query("DELETE FROM ".. fromClause)
-        end
-    end
-    return totalClear
+	local resultId = db.storeQuery("SELECT COUNT(*) AS `count` FROM ".. fromClause)
+	if resultId ~= false then
+		totalClear = result.getNumber(resultId, 'count')
+		result.free(resultId)
+		if totalClear > 0 then
+			db.query("DELETE FROM ".. fromClause)
+		end
+	end
+	return totalClear
 end
 
 local function doCheckEmptyAccounts() -- deleta automaticamente o dados das tabelas  "player_viplist"
 	local timeStamp = os.time() - (86400 * (emptyAccountMonths * 30))
 	local totalClear = 0
 
-    local fromClause = "`accounts` WHERE `accounts`.`creation` <= ".. timeStamp .." AND NOT EXISTS (SELECT `id` FROM `players` WHERE `accounts`.`id` = `players`.`account_id`)"
+	local fromClause = "`accounts` WHERE `accounts`.`creation` <= ".. timeStamp .." AND NOT EXISTS (SELECT `id` FROM `players` WHERE `accounts`.`id` = `players`.`account_id`)"
 
-    local resultId = db.storeQuery("SELECT COUNT(*) AS `count` FROM ".. fromClause)
-    if resultId ~= false then
-        totalClear = result.getNumber(resultId, "count")
-        result.free(resultId)
-        if totalClear > 0 then
-            db.query("DELETE FROM ".. fromClause)
-        end
-    end
-    return totalClear
+	local resultId = db.storeQuery("SELECT COUNT(*) AS `count` FROM ".. fromClause)
+	if resultId ~= false then
+		totalClear = result.getNumber(resultId, "count")
+		result.free(resultId)
+		if totalClear > 0 then
+			db.query("DELETE FROM ".. fromClause)
+		end
+	end
+	return totalClear
 end
 
 local function doCheckInactiveHouses()
@@ -86,34 +86,34 @@ end
 local function doCheckInactiveHouseLists() -- Apagando "house_lists" do player
 	local totalClear = 0
 
-    local fromClause = "`house_lists` WHERE EXISTS EXISTS (SELECT `id` FROM `houses` WHERE `house_lists`.`house_id` = `houses`.`id` AND `houses`.`owner` = 0)"
+	local fromClause = "`house_lists` WHERE EXISTS EXISTS (SELECT `id` FROM `houses` WHERE `house_lists`.`house_id` = `houses`.`id` AND `houses`.`owner` = 0)"
 
-    local resultId = db.storeQuery("SELECT COUNT(*) AS `count` FROM ".. fromClause)
-    if resultId ~= false then
-        totalClear = result.getNumber(resultId, "count")
-        result.free(resultId)
-        if totalClear > 0 then
-            db.query("DELETE FROM ".. fromClause)
-        end
-    end
-    return totalClear
+	local resultId = db.storeQuery("SELECT COUNT(*) AS `count` FROM ".. fromClause)
+	if resultId ~= false then
+		totalClear = result.getNumber(resultId, "count")
+		result.free(resultId)
+		if totalClear > 0 then
+			db.query("DELETE FROM ".. fromClause)
+		end
+	end
+	return totalClear
 end
 
 local function doCheckInactiveGuilds() -- deleta automaticamente o dados das tabelas  "guild_invites, guild_membership, guild_ranks"
 	local timeStamp = os.time() - (86400 * (inactiveDaysToCleanGuildWithFewPlayers * 24))
 	local totalClear = 0
 	
-    local fromClause = "`guilds` WHERE `guilds`.`creationdata` <= ".. timeStamp .." AND (SELECT COUNT(*) from `guild_membership` WHERE `guild_membership`.`guild_id` = `guilds`.`id`) < " .. minimumGuildMembers .. ""
+	local fromClause = "`guilds` WHERE `guilds`.`creationdata` <= ".. timeStamp .." AND (SELECT COUNT(*) from `guild_membership` WHERE `guild_membership`.`guild_id` = `guilds`.`id`) < " .. minimumGuildMembers .. ""
 
-    local resultId = db.storeQuery("SELECT COUNT(*) AS `count` FROM ".. fromClause)
-    if resultId ~= false then
-        totalClear = result.getNumber(resultId, "count")
-        result.free(resultId)
-        if totalClear > 0 then
-            db.query("DELETE FROM ".. fromClause)
-        end
-    end
-    return totalClear
+	local resultId = db.storeQuery("SELECT COUNT(*) AS `count` FROM ".. fromClause)
+	if resultId ~= false then
+		totalClear = result.getNumber(resultId, "count")
+		result.free(resultId)
+		if totalClear > 0 then
+			db.query("DELETE FROM ".. fromClause)
+		end
+	end
+	return totalClear
 end
 
 -- Executando as funções de limpeza ao iniciar o servidor.

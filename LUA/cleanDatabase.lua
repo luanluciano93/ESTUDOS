@@ -118,7 +118,9 @@ end
 
 -- Executando as funções de limpeza ao iniciar o servidor.
 function onStartup()
-    local inactivePlayer = doCheckInactivePlayer()
+	print("[[ DATABASE CLEAN ]]")
+
+	local inactivePlayer = doCheckInactivePlayer()
 	if inactivePlayer > 0 then
 		print(">> ".. inactivePlayer .. " deleted inactive players.")
 	end

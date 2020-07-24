@@ -86,7 +86,7 @@ end
 local function doCheckInactiveHouseLists() -- Apagando "house_lists" do player
 	local totalClear = 0
 
-	local fromClause = "`house_lists` WHERE EXISTS EXISTS (SELECT `id` FROM `houses` WHERE `house_lists`.`house_id` = `houses`.`id` AND `houses`.`owner` = 0)"
+	local fromClause = "`house_lists` WHERE EXISTS (SELECT `id` FROM `houses` WHERE `house_lists`.`house_id` = `houses`.`id` AND `houses`.`owner` = 0)"
 
 	local resultId = db.storeQuery("SELECT COUNT(*) AS `count` FROM ".. fromClause)
 	if resultId ~= false then

@@ -29,8 +29,8 @@ local inactiveDaysToCleanGuildWithFewPlayers = 10 -- quantos dias após a criaç
 local minimumGuildMembers = 5 -- quantidade minima de membros para a guild não entrar na verificação.
 
 local function doCheckInactivePlayer() -- deleta automaticamente o dados das tabelas "houses, player_items, player_depotitems, player_deaths, guilds, player_storage"
-    local timeStamp = os.time() - (86400 * (inactiveMonthsToDeleteCharacter * 30))
-    local totalClear = 0
+	local timeStamp = os.time() - (86400 * (inactiveMonthsToDeleteCharacter * 30))
+	local totalClear = 0
 
 	local fromClause = "`players` WHERE `group_id` = 1 AND lastlogin <= ".. timeStamp
 

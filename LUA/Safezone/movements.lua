@@ -1,3 +1,5 @@
+-- <movevent event="StepIn" actionid="9618" script="safezone.lua"/>
+
 dofile('data/lib/custom/safezone.lua')
 
 function onStepIn(creature, item, position, fromPosition)

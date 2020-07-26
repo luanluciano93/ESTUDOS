@@ -51,6 +51,9 @@ function onStepIn(creature, item, position, fromPosition)
 		return false
 	end
 
+	eventsOutfit[player:getGuid()] = player:getOutfit()
+	-- player:setOutfit(eventsOutfit[player:getGuid()])
+
 	local outfit = player:getSex() == 0 and 136 or 128
 	local treeLifeColor = SAFEZONE.lifeColor[3]
 	player:setOutfit({lookType = outfit, lookHead = treeLifeColor, lookBody = treeLifeColor, lookLegs = treeLifeColor, lookFeet = treeLifeColor})

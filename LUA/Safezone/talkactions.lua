@@ -5,6 +5,7 @@ dofile('data/lib/custom/safezone.lua')
 function onSay(player, words, param)
 	if player:getGroup():getAccess() then
 		if safezoneTotalPlayers() == 0 then
+			eventsOutfit = {}
 			safezoneTeleportCheck()
 		else
 			player:sendCancelMessage("Safezone event is already running.")

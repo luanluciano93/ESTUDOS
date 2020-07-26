@@ -25,12 +25,12 @@ function safezoneTeleportCheck()
 
 			local totalPlayers = safezoneTotalPlayers()
 			if totalPlayers > 0 then
-				Game.broadcastMessage("The safeZone event will begin now with ".. totalPlayers .." participants.!", MESSAGE_STATUS_WARNING)
-				print("> SafeZone Event will begin now [".. totalPlayers .."].")
+				Game.broadcastMessage("The safeZone event will begin now with ".. totalPlayers .." participants!", MESSAGE_STATUS_WARNING)
+				print(">> SafeZone Event will begin now [".. totalPlayers .."].")
 				
 				createProtectionTiles()
 			else
-				print("> SafeZone Event ended up not having the participation of players.")
+				print(">> SafeZone Event ended up not having the participation of players.")
 			end
 		else
 			Game.broadcastMessage("The safeZone event was opened and will close in ".. SAFEZONE.teleportTimeClose .." minutes.", MESSAGE_STATUS_WARNING)
@@ -38,9 +38,8 @@ function safezoneTeleportCheck()
 			local teleport = Game.createItem(1387, 1, SAFEZONE.positionTeleportOpen)
 			if teleport then
 				teleport:setActionId(SAFEZONE.actionId)
+				addEvent(safezoneTeleportCheck, SAFEZONE.teleportTimeClose * 60000)
 			end
-
-			addEvent(safezoneTeleportCheck, SAFEZONE.teleportTimeClose * 60000)
 		end
 	end
 end
@@ -79,6 +78,7 @@ local function createProtectionTiles()
 				end
 
 				Game.broadcastMessage("SafeZone Event is finish. Congratulation to the player ".. player:getName() .." for being the event champion!", MESSAGE_STATUS_WARNING)
+				print(">> SafeZone Event is finish. Congratulation to the player ".. player:getName() .." for being the event champion!")
 			end
 		end
 

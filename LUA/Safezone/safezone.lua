@@ -4,7 +4,7 @@ SAFEZONE = {
 	positionEnterEvent = Position(972, 964, 7),
 	storage = 9999,
 	actionId = 8614,
-	protectionTileId = 2343,
+	protectionTileId = {9562, 9563, 9564, 9565},
 	levelMin = 10,
 	maxPlayers = 20,
 	reward = {2160, 10},
@@ -63,7 +63,8 @@ local function totalProtectionTile()
 	end
 end
 
-local function createProtectionTiles()
+function createProtectionTiles()
+	local totalPlayers = safezoneTotalPlayers()
 	if safezoneTotalPlayers() == 1 then
 		for _, player in ipairs(Game.getPlayers()) do
 			if player:getStorageValue(SAFEZONE.storage) > 0 then
@@ -82,7 +83,7 @@ local function createProtectionTiles()
 			end
 		end
 
-	elseif safezoneTotalPlayers() > 1 then
+	elseif totalPlayers() > 1 then
 		local createTiles, totalTiles = 0, totalProtectionTile()
 		local tileX = SAFEZONE.positionEvent.firstTile.x
 		local tileY = SAFEZONE.positionEvent.firstTile.y
@@ -96,23 +97,28 @@ local function createProtectionTiles()
 			local newPosition = Position({x = randomX, y = randomY, z = tileZ})
 			local tile = Tile(newPosition)
 			if tile then
-				local item = tile:getItemById(protectionTileId)
-				if not item then
-					local tileProtection = Game.createItem(protectionTileId, 1, newPosition)
+				local item1 = tile:getItemById(protectionTileId[1])
+				local item2 = tile:getItemById(protectionTileId[2])
+				local item3 = tile:getItemById(protectionTileId[3])
+				local item4 = tile:getItemById(protectionTileId[4])
+				if not item1 and not item2 and not item3 and not item4 then
+					local randomTile = math.random(protectionTileId[1], protectionTileId[4])
+					local tileProtection = Game.createItem(randomTile, 1, newPosition)
 					if tileProtection then
 						tileProtection:getPosition():sendMagicEffect(CONST_ME_MAGIC_GREEN)
-						addEvent(deleteProtectionTiles, 5000, newPosition, protectionTileId)
+						addEvent(deleteProtectionTiles, 5000, newPosition, randomTile)
 						createTiles = createTiles + 1
 					end
 				end
 			end
 		end
+		addEvent(safezoneEffectArea, 5000, SAFEZONE.positionEvent.firstTile, SAFEZONE.positionEvent.tilesX, SAFEZONE.positionEvent.tilesY)
 		addEvent(checkPlayersinProtectionTiles, 4000)
 		addEvent(createProtectionTiles, 6000)
 	end
 end
 
-local function deleteProtectionTiles(position, tileId)
+function deleteProtectionTiles(position, tileId)
 	local tile = Tile(position)
 	if tile then
 		local item = tile:getItemById(tileId)
@@ -123,23 +129,55 @@ local function deleteProtectionTiles(position, tileId)
 	end
 end
 
-local function checkPlayersinProtectionTiles()
+function checkPlayersinProtectionTiles()
 	local protectionTileId = SAFEZONE.protectionTileId
 	for _, player in ipairs(Game.getPlayers()) do
 		if player:getStorageValue(SAFEZONE.storage) > 0 then
-			local item = Tile(player:getPosition()):getItemById(protectionTileId)
-			if not item then
-				if player:getStorageValue(SAFEZONE.storage) > 1 then
-					player:getPosition():sendMagicEffect(CONST_ME_MAGIC_RED)
-					player:setStorageValue(SAFEZONE.storage, player:getStorageValue(SAFEZONE.storage) - 1)
-					local lifeColor = SAFEZONE.lifeColor[player:getStorageValue(SAFEZONE.storage)]
-					player:setOutfit({lookHead = lifeColor, lookBody = lifeColor, lookLegs = lifeColor, lookFeet = lifeColor})
-				else
-					player:setStorageValue(SAFEZONE.storage, 0)
-					player:getPosition():sendMagicEffect(CONST_ME_SMALLPLANTS)
-					player:teleportTo(player:getTown():getTemplePosition())
-					player:getPosition():sendMagicEffect(CONST_ME_TELEPORT)
+			local tile = Tile(player:getPosition())
+			if tile then
+				local item1 = tile:getItemById(protectionTileId[1])
+				local item2 = tile:getItemById(protectionTileId[2])
+				local item3 = tile:getItemById(protectionTileId[3])
+				local item4 = tile:getItemById(protectionTileId[4])
+				if not item1 and not item2 and not item3 and not item4 then
+					if player:getStorageValue(SAFEZONE.storage) > 1 then
+
+						player:setStorageValue(SAFEZONE.storage, player:getStorageValue(SAFEZONE.storage) - 1)
+						local lifes = player:getStorageValue(SAFEZONE.storage)
+						player:setStorageValue(SAFEZONE.storage, 0)
+						player:getPosition():sendMagicEffect(CONST_ME_MAGIC_RED)
+
+						local outfit = player:getSex() == 0 and 136 or 128
+						if lifes == 1 then
+							local lifeColor = SAFEZONE.lifeColor[1]
+							player:setOutfit({lookType = outfit, lookHead = lifeColor, lookBody = lifeColor, lookLegs = lifeColor, lookFeet = lifeColor})
+						elseif lifes == 2 then
+							local lifeColor = SAFEZONE.lifeColor[2]
+							player:setOutfit({lookType = outfit, lookHead = lifeColor, lookBody = lifeColor, lookLegs = lifeColor, lookFeet = lifeColor})
+						end
+						
+						player:setStorageValue(SAFEZONE.storage, lifes)
+					else
+						player:setStorageValue(SAFEZONE.storage, 0)
+						player:getPosition():sendMagicEffect(CONST_ME_SMALLPLANTS)
+						player:teleportTo(player:getTown():getTemplePosition())
+						player:getPosition():sendMagicEffect(CONST_ME_TELEPORT)
+					end
 				end
+			end
+		end
+	end
+end
+
+function safezoneEffectArea(firstTile, tilesX, tilesY)
+	local fromPosition = firstTile
+	local toPositionX = fromPosition.x + tilesX
+	local toPositionY = fromPosition.y + tilesY
+	for x = fromPosition.x, toPositionX do
+		for y = fromPosition.y, toPositionY do
+			local position = Position({x = x, y = y, z = fromPosition.z})
+			if position then
+				position:sendMagicEffect(CONST_ME_SMALLPLANTS)
 			end
 		end
 	end

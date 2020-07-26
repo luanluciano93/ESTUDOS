@@ -33,7 +33,7 @@ function safezoneTeleportCheck()
 				print(">> SafeZone Event ended up not having the participation of players.")
 			end
 		else
-			Game.broadcastMessage("The safeZone event was opened and will close in ".. SAFEZONE.teleportTimeClose .." minutes.", MESSAGE_STATUS_WARNING)
+			safezoneMsg(SAFEZONE.teleportTimeClose)
 
 			local teleport = Game.createItem(1387, 1, SAFEZONE.positionTeleportOpen)
 			if teleport then
@@ -41,6 +41,15 @@ function safezoneTeleportCheck()
 				addEvent(safezoneTeleportCheck, SAFEZONE.teleportTimeClose * 60000)
 			end
 		end
+	end
+end
+
+function safezoneMsg(minutes)
+	local totalPlayers = safezoneTotalPlayers()
+	Game.broadcastMessage("The safezone event was opened and will close in ".. minutes .." minutes. The event has ".. totalPlayers .." participants.", MESSAGE_STATUS_WARNING)
+	local minutesTime = minutes - 1
+	if minutesTime > 0 then
+		addEvent(safezoneMsg, 60000, minutesTime)
 	end
 end
 

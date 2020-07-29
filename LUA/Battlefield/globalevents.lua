@@ -1,9 +1,11 @@
+-- <globalevent name="Battlefield" time="10:00:00" script="battlefield.lua" />
+
 dofile('data/lib/custom/battlefield.lua')
 
 function onTime(interval)
-	if BATTLEFIELD:totalPlayers() == 0 then
+	if battlefield_totalPlayers() == 0 then
 		eventsOutfit = {}
-		BATTLEFIELD:teleportCheck()
+		battlefield_teleportCheck()
 	else
 		print(">> Battlefield event is already running.")
 	end

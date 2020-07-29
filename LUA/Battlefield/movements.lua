@@ -1,3 +1,5 @@
+-- <movevent event="StepIn" actionid="9612" script="battlefield.lua"/>
+
 dofile('data/lib/custom/battlefield.lua')
 
 local function battlefield_balanceTeam()

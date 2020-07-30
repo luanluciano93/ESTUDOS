@@ -3,9 +3,9 @@
 dofile('data/lib/custom/safezone.lua')
 
 function onTime(interval)
-	if safezoneTotalPlayers() == 0 then
+	if safezone_totalPlayers() == 0 then
 		eventsOutfit = {}
-		safezoneTeleportCheck()
+		safezone_teleportCheck()
 	else
 		print(">> Safezone event is already running.")
 	end

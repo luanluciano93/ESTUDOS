@@ -66,7 +66,7 @@ function duca_openMsg(minutes)
 	if minutes == DUCA.minutesTotalEvent then
 		Game.broadcastMessage("Duca event was started and will close in ".. minutes .." "..(minutes == 1 and "minute" or "minutes") ..".", MESSAGE_STATUS_WARNING)
 	else
-		Game.broadcastMessage("Duca event was opened and will close in ".. minutes .." ".. (minutes == 1 and "minute" or "minutes") ..". The event has ".. totalPlayers .." ".. (totalPlayers > 1 and "participants" or "participant") .." and already has ".. totalDeaths .." ".. (totalDeaths > 1 and "deaths" or "death").", MESSAGE_STATUS_WARNING)
+		Game.broadcastMessage("Duca event was opened and will close in ".. minutes .." ".. (minutes == 1 and "minute" or "minutes") ..". The event has ".. totalPlayers .." ".. (totalPlayers > 1 and "participants" or "participant") .." and already has ".. totalDeaths .." ".. (totalDeaths > 1 and "deaths" or "death")..".", MESSAGE_STATUS_WARNING)
 	end
 
 	local minutesTime = minutes - 1

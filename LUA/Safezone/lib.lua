@@ -1,51 +1,55 @@
-SAFEZONE = {
-	teleportTimeClose = 5,
-	positionTeleportOpen = Position(972, 964, 7),
-	positionEnterEvent = Position(1105, 969, 4), 
-	storage = Storage.safezoneEvent,
-	actionId = 9618,
-	protectionTileId = {9562, 9563, 9564, 9565},
-	levelMin = 50,
-	maxPlayers = 30,
-	reward = {6527, 1},
-	lifeColor = {
-		[1] = 94, -- red
-		[2] = 77, -- orange
-		[3] = 79 -- yellow
-	},
-	positionEvent = {firstTile = {x = 1097, y = 963, z = 4}, tilesX = 16, tilesY = 12}
-}
+if not SAFEZONE then
+	SAFEZONE = {
+		positionTeleportOpen = Position(972, 964, 7),
+		teleportTimeClose = 5,
+		positionEnterEvent = Position(1105, 969, 4), 
+		storage = 99998,
+		actionId = 9618,
+		protectionTileId = {9562, 9563, 9564, 9565},
+		levelMin = 50,
+		maxPlayers = 30,
+		reward = {6527, 1},
+		lifeColor = {
+			[1] = 94, -- red
+			[2] = 77, -- orange
+			[3] = 79 -- yellow
+		},
+		positionEvent = {firstTile = {x = 1097, y = 963, z = 4}, tilesX = 16, tilesY = 12}
+	}
+end 
 
-function safezoneTeleportCheck()
+function safezone_teleportCheck()
 	local tile = Tile(SAFEZONE.positionTeleportOpen)
 	if tile then
 		local item = tile:getItemById(1387)
 		if item then
 			item:remove()
 
-			local totalPlayers = safezoneTotalPlayers()
+			local totalPlayers = safezone_totalPlayers()
 			if totalPlayers > 0 then
 				Game.broadcastMessage("The safezone event will begin now with ".. totalPlayers .." participants!", MESSAGE_STATUS_WARNING)
 				print(">> Safezone Event will begin now [".. totalPlayers .."].")
 				
-				createProtectionTiles()
+				safezone_createProtectionTiles()
 			else
 				print(">> Safezone Event ended up not having the participation of players.")
 			end
 		else
-			safezoneMsg(SAFEZONE.teleportTimeClose)
+			safezone_openMsg(SAFEZONE.teleportTimeClose)
+			
+			print("> Safezone Event was opened teleport.")
 
 			local teleport = Game.createItem(1387, 1, SAFEZONE.positionTeleportOpen)
 			if teleport then
 				teleport:setActionId(SAFEZONE.actionId)
-				addEvent(safezoneTeleportCheck, SAFEZONE.teleportTimeClose * 60000)
+				addEvent(safezone_teleportCheck, SAFEZONE.teleportTimeClose * 60000)
 			end
 		end
 	end
 end
 
-function safezoneMsg(minutes)
-	local totalPlayers = safezoneTotalPlayers()
+function safezone_openMsg(minutes)
+	local totalPlayers = safezone_totalPlayers()
 
 	if minutes == SAFEZONE.teleportTimeClose then
 		Game.broadcastMessage("The safezone event was opened and will close in ".. minutes .." "..(minutes == 1 and "minute" or "minutes") ..".", MESSAGE_STATUS_WARNING)
@@ -55,11 +59,21 @@ function safezoneMsg(minutes)
 
 	local minutesTime = minutes - 1
 	if minutesTime > 0 then
-		addEvent(safezoneMsg, 60000, minutesTime)
+		addEvent(safezone_openMsg, 60000, minutesTime)
 	end
 end
 
-function safezoneTotalPlayers()
+function safezone_removePlayer(uid)
+	local player = Player(uid)
+	if player then
+		player:teleportTo(player:getTown():getTemplePosition())
+		player:getPosition():sendMagicEffect(CONST_ME_TELEPORT)
+		player:setStorageValue(SAFEZONE.storage, 0)
+		player:setOutfit(eventsOutfit[player:getGuid()])
+	end	
+end
+
+function safezone_totalPlayers()
 	local x = 0
 	for _, player in ipairs(Game.getPlayers()) do
 		if player:getStorageValue(SAFEZONE.storage) > 0 then
@@ -69,8 +83,8 @@ function safezoneTotalPlayers()
 	return x
 end
 
-local function totalProtectionTile()
-	local totalPlayers = safezoneTotalPlayers()
+local function safezone_totalProtectionTile()
+	local totalPlayers = safezone_totalPlayers()
 	if totalPlayers >= 5 then
 		return totalPlayers - 3
 	else
@@ -78,21 +92,18 @@ local function totalProtectionTile()
 	end
 end
 
-function createProtectionTiles()
-	local totalPlayers = safezoneTotalPlayers()
-	if safezoneTotalPlayers() == 1 then
+function safezone_createProtectionTiles()
+	local totalPlayers = safezone_totalPlayers()
+	if totalPlayers == 1 then
 		for _, player in ipairs(Game.getPlayers()) do
 			if player:getStorageValue(SAFEZONE.storage) > 0 then
-				player:setStorageValue(SAFEZONE.storage, 0)
-				player:setOutfit(eventsOutfit[player:getGuid()])
-				player:teleportTo(player:getTown():getTemplePosition())
-				player:getPosition():sendMagicEffect(CONST_ME_TELEPORT)
-
 				local itemType = ItemType(SAFEZONE.reward[1])
 				if itemType:getId() ~= 0 then
 					player:sendTextMessage(MESSAGE_EVENT_ADVANCE, "You received ".. SAFEZONE.reward[2] .." ".. itemType:getName() .. " as a reward for first place in the safezone event.")
 					player:addItem(itemType:getId(), SAFEZONE.reward[2])
 				end
+
+				safezone_removePlayer(player:getGuid())
 
 				Game.broadcastMessage("Safezone Event is finish. Congratulation to the player ".. player:getName() .." for being the event champion!", MESSAGE_STATUS_WARNING)
 				print(">> Safezone Event is finish. Congratulation to the player ".. player:getName() .." for being the event champion!")
@@ -100,7 +111,7 @@ function createProtectionTiles()
 		end
 
 	elseif totalPlayers > 1 then
-		local createTiles, totalTiles = 0, totalProtectionTile()
+		local createTiles, totalTiles = 0, safezone_totalProtectionTile()
 		local tileX = SAFEZONE.positionEvent.firstTile.x
 		local tileY = SAFEZONE.positionEvent.firstTile.y
 		local tileZ = SAFEZONE.positionEvent.firstTile.z
@@ -122,19 +133,19 @@ function createProtectionTiles()
 					local tileProtection = Game.createItem(randomTile, 1, newPosition)
 					if tileProtection then
 						tileProtection:getPosition():sendMagicEffect(CONST_ME_MAGIC_GREEN)
-						addEvent(deleteProtectionTiles, 5000, newPosition, randomTile)
+						addEvent(safezone_deleteProtectionTiles, 5000, newPosition, randomTile)
 						createTiles = createTiles + 1
 					end
 				end
 			end
 		end
-		addEvent(safezoneEffectArea, 5000, SAFEZONE.positionEvent.firstTile, SAFEZONE.positionEvent.tilesX, SAFEZONE.positionEvent.tilesY)
-		addEvent(checkPlayersinProtectionTiles, 5000)
-		addEvent(createProtectionTiles, 6000)
+		addEvent(safezone_effectArea, 5000, SAFEZONE.positionEvent.firstTile, SAFEZONE.positionEvent.tilesX, SAFEZONE.positionEvent.tilesY)
+		addEvent(safezone_checkPlayersinProtectionTiles, 5000)
+		addEvent(safezone_createProtectionTiles, 6000)
 	end
 end
 
-function deleteProtectionTiles(position, tileId)
+function safezone_deleteProtectionTiles(position, tileId)
 	local tile = Tile(position)
 	if tile then
 		local item = tile:getItemById(tileId)
@@ -145,7 +156,7 @@ function deleteProtectionTiles(position, tileId)
 	end
 end
 
-function checkPlayersinProtectionTiles()
+function safezone_checkPlayersinProtectionTiles()
 	local protectionTileId = SAFEZONE.protectionTileId
 	for _, player in ipairs(Game.getPlayers()) do
 		if player:getStorageValue(SAFEZONE.storage) > 0 then
@@ -174,11 +185,8 @@ function checkPlayersinProtectionTiles()
 						
 						player:setStorageValue(SAFEZONE.storage, lifes)
 					else
-						player:setStorageValue(SAFEZONE.storage, 0)
 						player:getPosition():sendMagicEffect(CONST_ME_SMALLPLANTS)
-						player:setOutfit(eventsOutfit[player:getGuid()])
-						player:teleportTo(player:getTown():getTemplePosition())
-						player:getPosition():sendMagicEffect(CONST_ME_TELEPORT)
+						safezone_removePlayer(player:getGuid())
 					end
 				end
 			end
@@ -186,7 +194,7 @@ function checkPlayersinProtectionTiles()
 	end
 end
 
-function safezoneEffectArea(firstTile, tilesX, tilesY)
+function safezone_effectArea(firstTile, tilesX, tilesY)
 	local fromPosition = firstTile
 	local toPositionX = fromPosition.x + tilesX
 	local toPositionY = fromPosition.y + tilesY

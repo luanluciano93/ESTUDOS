@@ -133,7 +133,7 @@ function safezone_createProtectionTiles()
 					local tileProtection = Game.createItem(randomTile, 1, newPosition)
 					if tileProtection then
 						tileProtection:getPosition():sendMagicEffect(CONST_ME_MAGIC_GREEN)
-						addEvent(safezone_deleteProtectionTiles, 5000, newPosition, randomTile)
+						addEvent(safezone_deleteProtectionTiles, 5500, newPosition, randomTile)
 						createTiles = createTiles + 1
 					end
 				end

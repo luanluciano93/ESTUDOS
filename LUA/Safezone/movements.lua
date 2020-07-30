@@ -46,7 +46,7 @@ function onStepIn(creature, item, position, fromPosition)
 		end
 	end
 
-	if safezoneTotalPlayers() >= SAFEZONE.maxPlayers then
+	if safezone_totalPlayers() >= SAFEZONE.maxPlayers then
 		player:sendCancelMessage("The event already has the maximum number of participants.")
 		player:teleportTo(fromPosition)
 		player:getPosition():sendMagicEffect(CONST_ME_POFF)
@@ -54,7 +54,6 @@ function onStepIn(creature, item, position, fromPosition)
 	end
 
 	eventsOutfit[player:getGuid()] = player:getOutfit()
-	-- player:setOutfit(eventsOutfit[player:getGuid()])
 
 	local outfit = player:getSex() == 0 and 136 or 128
 	local treeLifeColor = SAFEZONE.lifeColor[3]

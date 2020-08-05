@@ -5,8 +5,8 @@ if not CAPTURETHEFLAG then
 		positionTeleportOpen = Position(972, 964, 7),
 		teleportTimeClose = 5,
 		positionEnterEvent = Position(1237, 952, 8),
-		storage = Storage.captureTheFlagEvent,
-		lastPlayer = GlobalStorage.captureTheFlagEvent, -- global storage
+		storage = 88888,
+		lastPlayer = 88888, -- global storage
 		levelMin = 50,
 		minPlayersToStartEvent = 10,
 		reward = {6527, 1},

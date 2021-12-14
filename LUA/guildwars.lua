@@ -9,6 +9,7 @@
 -- /war withdraw, money
 
 local frags = {min = 30, max = 300, standard = 100}
+local timeDaysMax = 30
 
 local function getEnemyId(enemyName)
 	local resultId = db.storeQuery("SELECT `id` FROM `guilds` WHERE `name` = " .. db.escapeString(enemyName))
@@ -215,6 +216,12 @@ function onSay(player, words, param)
 		payment = tonumber(split[4])
 		if payment then
 			payment = math.floor(payment)
+
+			if (payment < 0 or payment > 99999999999999) then
+				player:sendChannelMessage('[GUILD WAR]', 'Invalid amount of money specified.', TALKTYPE_CHANNEL_R1, CHANNEL_GUILD)
+				return false
+			end
+
 			local resultId = db.storeQuery("SELECT `balance` FROM `guilds` WHERE `id` = " .. guildId)
 			local state = result.getNumber(resultId, "balance") < payment
 			result.free(resultId)
@@ -229,6 +236,10 @@ function onSay(player, words, param)
 
 		local begining, ending, days = os.time(), tonumber(split[5]), 0
 		if ending and ending ~= 0 then
+			if ending > timeDaysMax then
+				player:sendChannelMessage('[GUILD WAR]', 'Invalid amount of days specified. The maximum value for days of war is ' .. timeDaysMax ..' days.', TALKTYPE_CHANNEL_R1, CHANNEL_GUILD)
+				return false
+			end
 			days = ending
 			ending = begining + (ending * 86400)
 		else

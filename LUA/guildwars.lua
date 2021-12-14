@@ -131,13 +131,14 @@ function onSay(player, words, param)
 		return false
 	end
 
-	if enemy == guildId then
+	local enemyName = getEnemyName(enemy)
+	local guildName = guild:getName()
+
+	if enemy == guildId or enemyName == guildName then
 		player:sendChannelMessage('[GUILD WAR]', 'You cannot perform war action on your own guild.', TALKTYPE_CHANNEL_R1, CHANNEL_GUILD)
 		return false
 	end
-	
-	local enemyName = getEnemyName(enemy)
-	local guildName = guild:getName()
+
 	if table.contains({"accept", "reject", "cancel"}, split[1]) then
 		local query = "`guild1` = " .. enemy .. " AND `guild2` = " .. guildId
 		if split[1] == "cancel" then

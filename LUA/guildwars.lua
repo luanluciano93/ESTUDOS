@@ -1,14 +1,14 @@
--- /war invite,enemyGuild,frags(x),money(x),timeDays(x) [0]
--- /war accept,enemyGuild (aceita um convite recebido [1])
+-- /war invite, enemyGuild, frags(x), money(x), timeDays(x) [0]
+-- /war accept, enemyGuild (aceita um convite recebido [1])
 -- /war reject,enemyGuild (cancela um convite recebido [2])
--- /war cancel,enemyGuild (cancela um convite enviado [3])
--- /war end,enemyGuild  (se voce for quem enviouo convite encerra a guerra [5] ou se for quem recebeu o convite ela muda para pedido de encerramento [4])
--- /war finish,enemyGuild (se voce for o lider e tiver pedido de encerramento da outra guild encerra a guerra [5])
+-- /war cancel, enemyGuild (cancela um convite enviado [3])
+-- /war end, enemyGuild  (se voce for quem enviouo convite encerra a guerra [5] ou se for quem recebeu o convite ela muda para pedido de encerramento [4])
+-- /war finish, enemyGuild (se voce for o lider e tiver pedido de encerramento da outra guild encerra a guerra [5])
 -- /war balance
--- /war deposity,money
--- /war withdraw,money
+-- /war deposity, money
+-- /war withdraw, money
 
-local frags = {min = 30, max = 300, padrao = 100}
+local frags = {min = 30, max = 300, standard = 100}
 
 local function getEnemyId(enemyName)
 	local resultId = db.storeQuery("SELECT `id` FROM `guilds` WHERE `name` = " .. db.escapeString(enemyName))
@@ -32,8 +32,8 @@ local function getEnemyName(enemyId)
 	return enemyName
 end
 
-local function isValidMoney(value)
-	if value == nil then
+local function isValidMoneyGuild(value)
+	if not value then
 		return false
 	end
 	return (value > 0 and value <= 99999999999999)
@@ -47,8 +47,13 @@ function onSay(player, words, param)
 		player:sendChannelMessage('[GUILD WAR]', 'You need to be in a guild in order to execute this command.', TALKTYPE_CHANNEL_R1, CHANNEL_GUILD)
 		return false
 	end
-	
-	local split = param:split(",")
+
+	local split = param:splitTrimmed(",")
+	if not split[1] then
+		player:sendChannelMessage('[GUILD WAR]', "Insufficient parameters.", TALKTYPE_CHANNEL_R1, CHANNEL_GUILD)
+		return false
+	end
+
 	if split[1] == "balance" then
 		local resultId = db.storeQuery('SELECT `name`, `balance` FROM `guilds` WHERE `id` = ' .. guildId)
 		if resultId == false then
@@ -58,21 +63,21 @@ function onSay(player, words, param)
 		result.free(resultId)
 		return false
 	end
-	
+
+	if not split[2] then
+		player:sendChannelMessage('[GUILD WAR]', "Insufficient parameters.", TALKTYPE_CHANNEL_R1, CHANNEL_GUILD)
+		return false
+	end	
+
 	if not guildId or (player:getGuildLevel() < 3) then
 		player:sendChannelMessage('[GUILD WAR]', 'You need to be the guild leader to execute this command.', TALKTYPE_CHANNEL_R1, CHANNEL_GUILD)
-		return false
-	end
-
-	if not split[1] or not split[2] then
-		player:sendChannelMessage('[GUILD WAR]', "Not enough param(s).", TALKTYPE_CHANNEL_R1, CHANNEL_GUILD)
 		return false
 	end
 
 	local money = 0
 	if table.contains({"withdraw", "deposity"}, split[1]) then
 		local money = tonumber(split[2])
-		if not isValidMoney(money) then
+		if not isValidMoneyGuild(money) then
 			player:sendChannelMessage('[GUILD WAR]', 'Invalid amount of money specified.', TALKTYPE_CHANNEL_R1, CHANNEL_GUILD)
 			return false
 		end
@@ -159,13 +164,13 @@ function onSay(player, words, param)
 
 		query = "UPDATE `guild_wars` SET "
 
-		local msg = "accepted " .. enemyName .. " invitation to war."
+		local message = "accepted " .. enemyName .. " invitation to war."
 		if split[1] == "reject" then
 			query = query .. "`ended` = " .. os.time() .. ", `status` = 2"
-			msg = "rejected " .. enemyName .. " invitation to war."
+			message = "rejected " .. enemyName .. " invitation to war."
 		elseif split[1] == "cancel" then
 			query = query .. "`ended` = " .. os.time() .. ", `status` = 3"
-			msg = "canceled invitation to a war with " .. enemyName .. "."
+			message = "canceled invitation to a war with " .. enemyName .. "."
 		else
 			query = query .. "`started` = " .. os.time() .. ", `ended` = " .. (result.getNumber(resultId, "ended") > 0 and (os.time() + ((result.getNumber(resultId, "started") - result.getNumber(resultId, "ended")) / 86400)) or 0) .. ", `status` = 1"
 		end
@@ -174,41 +179,41 @@ function onSay(player, words, param)
 		result.free(resultId)
 		db.query(query)
 
-		Game.broadcastMessage(guildName .. " has " .. msg, MESSAGE_EVENT_ADVANCE)
-		print("> Broadcasted message: \"" .. guildName .. " has " .. msg .. "\".")
+		Game.broadcastMessage(guildName .. " has " .. message, MESSAGE_EVENT_ADVANCE)
+		print("> Broadcasted message: \"" .. guildName .. " has " .. message .. "\".")
 		
 		return false
 
 	elseif split[1] == "invite" then
-		local str, resultId = "", db.storeQuery("SELECT `guild1`, `status` FROM `guild_wars` WHERE `guild1` IN (" .. guildId .. "," .. enemy .. ") AND `guild2` IN (" .. enemy .. "," .. guildId .. ") AND `status` IN (0, 1)")
+		local invitationDenied, resultId = "", db.storeQuery("SELECT `guild1`, `status` FROM `guild_wars` WHERE `guild1` IN (" .. guildId .. "," .. enemy .. ") AND `guild2` IN (" .. enemy .. "," .. guildId .. ") AND `status` IN (0, 1)")
 		if resultId ~= false then
 			if result.getNumber(resultId, "status") == 0 then
 				if result.getNumber(resultId, "guild1") == guildId then
-					str = "You have already invited " .. enemyName .. " to war."
+					invitationDenied = "You have already invited " .. enemyName .. " to war."
 				else
-					str = enemyName .. " have already invited you to war."
+					invitationDenied = enemyName .. " have already invited you to war."
 				end
 			else
-				str = "You are already on a war with " .. enemyName .. "."
+				invitationDenied = "You are already on a war with " .. enemyName .. "."
 			end
 			result.free(resultId)
 		end
 
-		if str ~= "" then
-			player:sendChannelMessage('[GUILD WAR]', str, TALKTYPE_CHANNEL_R1, CHANNEL_GUILD)
+		if invitationDenied ~= "" then
+			player:sendChannelMessage('[GUILD WAR]', invitationDenied, TALKTYPE_CHANNEL_R1, CHANNEL_GUILD)
 			return false
 		end
 
 		local fragLimit, fragsSplit = 0, tonumber(split[3])
-		if fragsSplit ~= nil then
-			fragLimit = math.max(frags.min, math.min(frags.max, fragsSplit))
+		if not fragsSplit then
+			fragLimit = frags.standard
 		else
-			fragLimit = frags.padrao
+			fragLimit = math.max(frags.min, math.min(frags.max, fragsSplit))
 		end
 
 		local payment = 0
 		payment = tonumber(split[4])
-		if payment ~= nil then
+		if payment then
 			payment = math.floor(payment)
 			local resultId = db.storeQuery("SELECT `balance` FROM `guilds` WHERE `id` = " .. guildId)
 			local state = result.getNumber(resultId, "balance") < payment
@@ -223,7 +228,7 @@ function onSay(player, words, param)
 		end
 
 		local begining, ending, days = os.time(), tonumber(split[5]), 0
-		if ending ~= nil and ending ~= 0 then
+		if ending and ending ~= 0 then
 			days = ending
 			ending = begining + (ending * 86400)
 		else
@@ -231,6 +236,7 @@ function onSay(player, words, param)
 		end
 
 		db.query("INSERT INTO `guild_wars` (`guild1`, `guild2`, `name1`, `name2`, `started`, `ended`, `frags`, `payment`) VALUES (" .. guildId .. ", " .. enemy .. ", " .. db.escapeString(guildName) .. ", " .. db.escapeString(enemyName) .. ", " .. begining .. ", " .. ending .. ", " .. fragLimit .. ", " .. payment .. ");")
+		--db.query("INSERT INTO `znote_guild_wars` (`limit`) VALUES ('"..frags.."');")
 
 		Game.broadcastMessage(guildName .. " has invited " .. enemyName .. " to war till " .. fragLimit .. " frags"..(payment > 0 and " betting ".. payment .." golds")..""..(days > 0 and " with a duration of ".. days .." day(s)")..".", MESSAGE_EVENT_ADVANCE)
 		print("> Broadcasted message: \"" .. guildName .. " has invited " .. enemyName .. " to war till " .. fragLimit .. " frags"..(payment > 0 and " betting ".. payment .." golds")..""..(days > 0 and " with a duration of ".. days .." day(s)")..".")

@@ -30,11 +30,6 @@ function onSay(player, words, param)
 
 	local addondoll_id = 9693
 
-	if player:getExhaustion() > 0 then
-		player:sendCancelMessage("You're exhausted.")
-		player:getPosition():sendMagicEffect(CONST_ME_POFF)
-	end
-
 	if param == "" then
 		player:sendTextMessage(MESSAGE_STATUS_CONSOLE_BLUE, "Command param required. Ex: !addon outfitName")
 		player:getPosition():sendMagicEffect(CONST_ME_POFF)

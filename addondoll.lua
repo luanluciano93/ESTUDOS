@@ -50,13 +50,13 @@ function onSay(player, words, param)
 		return false
 	end		
 
-	if not player:removeItem(addondoll_id, 1) then
-		print("[ERROR] TALKACTION: addon doll, FUNCTION: removeItem, PLAYER: "..player:getName())
-	else
+	if player:removeItem(addondoll_id, 1) then
 		player:addOutfitAddon(word[1], 3)
 		player:addOutfitAddon(word[2], 3)
 		player:sendTextMessage(MESSAGE_EVENT_ADVANCE, "Your full addon ".. outfit .." has been added!")
 		player:getPosition():sendMagicEffect(CONST_ME_GIFT_WRAPS)
+	else
+		print("[ERROR] TALKACTION: addon doll, FUNCTION: removeItem, PLAYER: "..player:getName())
 	end
 
 	return false

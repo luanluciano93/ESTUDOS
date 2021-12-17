@@ -1,10 +1,5 @@
 function onSay(player, words, param)
 
-	if player:getExhaustion() > 0 then
-		player:sendCancelMessage("You're exhausted.")
-		player:getPosition():sendMagicEffect(CONST_ME_POFF)
-	end
-
 	local outfits =
 	{
 		--[outfit] = {id_female, id_male}
@@ -35,8 +30,13 @@ function onSay(player, words, param)
 
 	local addondoll_id = 9693
 
+	if player:getExhaustion() > 0 then
+		player:sendCancelMessage("You're exhausted.")
+		player:getPosition():sendMagicEffect(CONST_ME_POFF)
+	end
+
 	if param == "" then
-		player:sendTextMessage(MESSAGE_STATUS_CONSOLE_BLUE, "Command param required.")
+		player:sendTextMessage(MESSAGE_STATUS_CONSOLE_BLUE, "Command param required. Ex: !addon outfitName")
 		player:getPosition():sendMagicEffect(CONST_ME_POFF)
 		return false
 	end
@@ -47,9 +47,10 @@ function onSay(player, words, param)
 		return false
 	end	
 
-	local word = outfits[string.lower(param)]
+	local outfit = param:lower()
+	local word = outfits[outfit]
 	if not word then
-		player:sendCancelMessage("Invalid param specified.")
+		player:sendTextMessage(MESSAGE_STATUS_CONSOLE_BLUE, "Invalid param specified. Ex: !addon outfitName")
 		player:getPosition():sendMagicEffect(CONST_ME_POFF)
 		return false
 	end		
@@ -59,7 +60,7 @@ function onSay(player, words, param)
 	else
 		player:addOutfitAddon(word[1], 3)
 		player:addOutfitAddon(word[2], 3)
-		player:sendTextMessage(MESSAGE_EVENT_ADVANCE, "Your full addon ".. string.lower(param) .." has been added!")
+		player:sendTextMessage(MESSAGE_EVENT_ADVANCE, "Your full addon ".. outfit .." has been added!")
 		player:getPosition():sendMagicEffect(CONST_ME_GIFT_WRAPS)
 	end
 

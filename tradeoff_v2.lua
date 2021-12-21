@@ -26,12 +26,13 @@ local function getContainerItems(uid)
 	if not container then
 		return false
 	end
+
 	local containerItems = {}
 	local containerSize = container:getSize()
 	for i = (containerSize - 1), 0, -1 do
-		local item = pushThing(container:getItem(i))
+		local itemContainer = pushThing(container:getItem(i))
 		-- Check for containers with items inside
-		local containerInside = Container(item.uid)
+		local containerInside = Container(itemContainer.uid)
 		if containerInside then
 			local itemInside = pushThing(containerInside:getItem(0))
 			if itemInside then
@@ -39,32 +40,27 @@ local function getContainerItems(uid)
 			end
 		end
 
-		local count = 1
-		local charges = "DEFAULT"
-		local duration = "DEFAULT"
-
-		local itemCount = item:getCharges()
-		if itemCount ~= 0 then
-			count = itemCount
-		end
+		local itemContainerCount = itemContainer and itemContainer:getCount() or 1
+		local itemContainerCharges = "DEFAULT"
+		local itemContainerDuration = "DEFAULT"
 	
-		local itemCharges = item:getAttribute(ITEM_ATTRIBUTE_CHARGES)
+		local itemCharges = itemContainer:getAttribute(ITEM_ATTRIBUTE_CHARGES)
 		if itemCharges then
 			if itemCharges ~= 0 then
-				charges = item:getAttribute(ITEM_ATTRIBUTE_CHARGES)
+				itemContainerCharges = itemContainer:getAttribute(ITEM_ATTRIBUTE_CHARGES)
 			end
 		end
 
-		local itemDuration = item:getAttribute(ITEM_ATTRIBUTE_DURATION)
+		local itemDuration = itemContainer:getAttribute(ITEM_ATTRIBUTE_DURATION)
 		if itemDuration then
 			if itemDuration ~= 0 then
-				charges = item:getAttribute(ITEM_ATTRIBUTE_DURATION)
+				itemContainerDuration = itemContainer:getAttribute(ITEM_ATTRIBUTE_DURATION)
 			end
 		end
 
-		containerItems[i + 1] = {id = item:getId(), count = count, charges = charges, duration = duration}
+		containerItems[i + 1] = {id = itemContainer:getId(), count = itemContainerCount, charges = itemContainerCharges, duration = itemContainerDuration}
 	end
-	return containerItems
+	return #containerItems > 0 and containerItems or false
 end
 
 function onSay(player, words, param)
@@ -102,11 +98,6 @@ function onSay(player, words, param)
 
 	-- !tradeoff add
 	if word[1] == "add" then
-		if not word[2] then
-			player:sendTextMessage(config.errorMsgType, "Please enter the value of the offer or the item you want to buy.")
-			player:getPosition():sendMagicEffect(CONST_ME_POFF)
-			return false
-		end
 
 		if player:getLevel() < config.levelRequiredToAdd then
 			player:sendTextMessage(MESSAGE_STATUS_CONSOLE_BLUE, "You don't have required level ".. config.levelRequiredToAdd ..".")
@@ -130,173 +121,178 @@ function onSay(player, words, param)
 			return false
 		end
 
+		if not word[2] then
+			player:sendTextMessage(config.errorMsgType, "Please enter the value of the offer or the item you want to buy. Ex: !tradeoff add, sellForValue, !tradeoff add, sellForItem or !tradeoff add, sellForItem, sellForCountItem")
+			player:getPosition():sendMagicEffect(CONST_ME_POFF)
+			return false
+		end
+
 		local item = player:getSlotItem(CONST_SLOT_AMMO)
-		if not item or item.itemid == 0 then
+		local sellingItem = ItemType(item.uid)
+		if not sellingItem then
 			doPlayerSendTextMessage(cid, config.errorMsgType, "To create an offer the item must be in the ammunition slot.")
-			return true
+			return false
 		end
 
-		local itemType = ItemType(item.uid)
-		if itemType:getId() == 0 then
+		local sellingItemId = sellingItem:getId()
+		if sellingItemId == 0 then
 			doPlayerSendTextMessage(cid, config.errorMsgType, "To create an offer the item must be in the ammunition slot.")
-			return true
+			return false
 		end
 
-		if not itemType:isMoveable() then
-			doPlayerSendTextMessage(cid, config.errorMsgType, "You cannot add a property as an offer.")
-			return true
+		if not sellingItem:isMoveable() or not sellingItem:isPickupable() then
+			doPlayerSendTextMessage(cid, config.errorMsgType, "You cannot add this item type as an offer.")
+			return false
 		end
 
-		if itemType:isCorpse() then
+		if sellingItem:isCorpse() then
 			doPlayerSendTextMessage(cid, config.errorMsgType, "You cannot add a corpse as an offer.")
-			return true
+			return false
 		end
 
-		local containerItems = getContainerItems(item.uid)
-			
-		local tradeType = 0
-		local container = Container(item.uid)
-		if table.contains(config.itemsVIP, item:getId()) and (not containerItems or (container and not containerItems[1])) then
-			tradeType = 1 -- itemVip
-		elseif container then
-			tradeType = 2 -- Container
-		end
+		local sellingItemCount = sellingItem and sellingItem:getCount() or 1
+		local sellingItemCharges = "DEFAULT"
+		local sellingItemDuration = "DEFAULT"
 
-		local count = 1
-		local charges = "DEFAULT"
-		local duration = "DEFAULT"
-
-		local itemCount = itemType:getCharges()
-		if itemCount ~= 0 then
-			count = itemCount
-		end
-
-		local itemCharges = itemType:getAttribute(ITEM_ATTRIBUTE_CHARGES)
+		local itemCharges = sellingItem:getAttribute(ITEM_ATTRIBUTE_CHARGES)
 		if itemCharges then
 			if itemCharges ~= 0 then
-				charges = itemType:getAttribute(ITEM_ATTRIBUTE_CHARGES)
+				sellingItemCharges = sellingItem:getAttribute(ITEM_ATTRIBUTE_CHARGES)
 			end
 		end
 
-		local itemDuration = itemType:getAttribute(ITEM_ATTRIBUTE_DURATION)
+		local itemDuration = sellingItem:getAttribute(ITEM_ATTRIBUTE_DURATION)
 		if itemDuration then
 			if itemDuration ~= 0 then
-				charges = itemType:getAttribute(ITEM_ATTRIBUTE_DURATION)
+				sellingItemDuration = sellingItem:getAttribute(ITEM_ATTRIBUTE_DURATION)
 			end
 		end
 
-		local itemArticle = (count > 1 and count or (itemType:getArticle() ~= "" and itemType:getArticle() or ""))
+		local sellingItemArticle = (count > 1 and count or (sellingItem:getArticle() ~= "" and sellingItem:getArticle() or ""))
+		local sellingItemName = (count > 1 and sellingItem:getPluralName() or sellingItem:getName())
+
+		local containerItems = getContainerItems(item.uid)
+		local tradeType = 1 -- no container
+		if containerItems then
+			tradeType = 2 -- container
+		end
+
+		local message = ""
+		local messagePayment = ""
+		local playerGuid = player:getGuid()
+
+		local itemPayment = "DEFAULT"
+		local addOffer = "DEFAULT"
+		local addOfferForItemCount = "DEFAULT"
 
 		-- !tradeoff add, valor
 		if isNumber(word[2]) then
 
-			if table.contains(config.goldItems, item:getId()) then
+			if table.contains(config.goldItems, sellingItemId) then
 				player:sendTextMessage(config.errorMsgType, "You can't trade gold for gold.")
+				return false
 			end
 
-			local goldWord = tonumber(word[2])
-			if goldWord <= 0 then
+			local addOfferForMoney = tonumber(word[2])
+			if addOfferForMoney < 1 then
 				doPlayerSendTextMessage(cid, config.errorMsgType, "The offer must have a value greater than 0.")
+				return false
 			end			
 
-			if goldWord > config.priceLimit then
+			if addOfferForMoney > config.priceLimit then
 				doPlayerSendTextMessage(cid, config.errorMsgType, "The offer may not exceed the value of "..config.priceLimit.." gold coins.")
-			end			
+				return false
+			end
 
-								local offerID
-								local itemsString = ""
-								if tradeType == 2 then
-									if not containerItems then
-										doPlayerSendTextMessage(cid, config.errorMsgType, "You can not have containers with items inside the main container.")
-										return true
-									end										
+			addOffer = addOfferForMoney
 
-									local query = "INSERT INTO trade_off_offers (id, player_id, type, item_id, item_count, item_charges, item_duration, item_name, item_trade, cost, cost_count, date) VALUES (NULL, "..getPlayerGUID(cid)..", "..tradeType..", "..item.id..", "..count..", "..charges..", "..duration..", \""..getItemNameByCount(item.id, count).."\", DEFAULT, "..word[2]..", DEFAULT, "..os.time()..")"
-									db.query(query)
-									offerID = getOfferID()
-									for i = 1, #containerItems do
-										db.query("INSERT INTO trade_off_container_items (offer_id, item_id, item_charges, item_duration, count) VALUES (LAST_INSERT_ID(), "..containerItems[i].id..", "..containerItems[i].charges..", "..containerItems[i].duration..", "..containerItems[i].count..")")
-									end
-									itemsString = " with ".. #containerItems .." items inside"
-								else
-									local query = "INSERT INTO trade_off_offers (id, player_id, type, item_id, item_count, item_charges, item_duration, item_name, item_trade, cost, cost_count, date) VALUES (NULL, "..getPlayerGUID(cid)..", "..tradeType..", "..item.id..", "..count..", "..charges..", "..duration..", \""..getItemNameByCount(item.id, count).."\", DEFAULT, "..word[2]..", DEFAULT, "..os.time()..")"
-									db.query(query)
-									offerID = getOfferID()
-								end
-								itemsString = itemsString ~= "" and itemsString or ""
-								doPlayerSendTextMessage(cid, config.successMsgType, "You announced "..itemArticle.." "..getItemNameByCount(item.id, count)..""..itemsString.." for "..word[2].." gold coins, your offerID is "..offerID..".")
-								doRemoveItem(item.uid)
+			messagePayment = "for ".. addOfferForMoney .." gold coins."
 
+		else -- !tradeoff add, item
 
-				else
-					-- !tradeoff add, item
-					errors(false)
-					local tradeItemID = getItemIdByName(word[2])
-					errors(true)
-					if tradeItemID then
-						if isInArray(config.goldItems, tradeItemID) then
-							doPlayerSendTextMessage(cid, config.errorMsgType, "To sell for gold insert only the amount instead of item name.")
-							return true
-						elseif (tradeItemID == item.id) then
-							doPlayerSendTextMessage(cid, config.errorMsgType, "You can not trade equal items.")
-							return true						
-						elseif getItemInfo(tradeItemID).corpseType > 0 then
-							doPlayerSendTextMessage(cid, config.errorMsgType, "You can not buy a corpse.")
-							return true
-						elseif not getItemInfo(tradeItemID).pickupable then
-							doPlayerSendTextMessage(cid, config.errorMsgType, "You can not buy "..getItemArticleById(tradeItemID).." "..getItemNameById(tradeItemID)..".")
-							return true
-						end
-						local costCount
-						if word[3] then
-							if isItemStackable(tradeItemID) then
-								if isNumber(word[3]) and tonumber(word[3]) > 0 and tonumber(word[3]) <= 100 then
-									costCount = tonumber(word[3])
-									local query = "INSERT INTO trade_off_offers (id, player_id, type, item_id, item_count, item_charges, item_duration, item_name, item_trade, cost, cost_count, date) VALUES (NULL, "..getPlayerGUID(cid)..", "..tradeType..", "..item.id..", "..count..", "..charges..", "..duration..", \""..getItemNameByCount(item.id, count).."\", 1, "..tradeItemID..", "..costCount..", "..os.time()..")"
-									db.query(query)
-								else
-									doPlayerSendTextMessage(cid, config.errorMsgType, "You can only receive from 1 to 100 stackable items.")
-									return true
-								end
-							else
-								doPlayerSendTextMessage(cid, config.errorMsgType, "You can only select the quantity with stackable items.")
-								return true
-							end
-						else
-							local query = "INSERT INTO trade_off_offers (id, player_id, type, item_id, item_count, item_charges, item_duration, item_name, item_trade, cost, cost_count, date) VALUES (NULL, "..getPlayerGUID(cid)..", "..tradeType..", "..item.id..", "..count..", "..charges..", "..duration..", \""..getItemNameByCount(item.id, count).."\", 1, "..tradeItemID..", DEFAULT, "..os.time()..")"
-							db.query(query)
-						end
-						local offerID = getOfferID()
-						local itemsString = ""
-						if (tradeType == 2) then
-							if containerItems then
-								for i = 1, #containerItems do
-									db.query("INSERT INTO trade_off_container_items (offer_id, item_id, item_charges, item_duration, count) VALUES (LAST_INSERT_ID(), "..containerItems[i].id..", "..containerItems[i].charges..", "..containerItems[i].duration..", "..containerItems[i].count..")")
-								end
-								itemsString = " with ".. #containerItems .." items inside"
-							else
-								doPlayerSendTextMessage(cid, config.errorMsgType, "You can not have containers with items inside the main container.")
-								return true
-							end
-						end
-						costCount = costCount and costCount > 1 and costCount or getItemArticleById(tradeItemID)
-						itemsString = itemsString ~= "" and itemsString or ""
-						doPlayerSendTextMessage(cid, config.successMsgType, "You announced "..itemArticle.." "..getItemNameByCount(item.id, count)..""..itemsString.." for "..costCount.." "..getItemNameByCount(tradeItemID, costCount)..", your offerID is "..offerID..".")	
-						setPlayerStorageValue(cid, config.offerLimitStor, numOffer+1)
-						doRemoveItem(item.uid)
-					else
-						doPlayerSendTextMessage(cid, config.errorMsgType, "This item does not exist, check if it's name is correct.")
-					end
+			local addOfferForItemId = ItemType(word[2]):getId()
+
+			if not addOfferForItemId then
+				doPlayerSendTextMessage(cid, config.errorMsgType, "This item does not exist, check if it's name is correct.")
+				return false
+			end
+
+			if table.contains(config.goldItems, addOfferForItemId) then
+				doPlayerSendTextMessage(cid, config.errorMsgType, "To sell for gold insert only the amount instead of item name.")
+				return false
+			end
+
+			if addOfferForItemId == sellingItemId then
+				doPlayerSendTextMessage(cid, config.errorMsgType, "You can not trade equal items.")
+				return false
+			end
+
+			if addOfferForItemId:isCorpse() then
+				doPlayerSendTextMessage(cid, config.errorMsgType, "You can not buy a corpse.")
+				return false
+			end
+
+			if not addOfferForItemId:isMoveable() or not addOfferForItemId:isPickupable() then
+				doPlayerSendTextMessage(cid, config.errorMsgType, "You cannot request this type of payment item.")
+				return false
+			end
+
+			-- !tradeoff add, item, count
+			if word[3] then
+				if not addOfferForItemId:isStackable() then
+					doPlayerSendTextMessage(cid, config.errorMsgType, "You can only select the quantity with stackable items.")
+					return false
 				end
-			else
-				doPlayerSendTextMessage(cid, config.errorMsgType, "Please enter the value of the offer or the item you want to buy.")
+
+				if not isNumber(word[3]) then
+					doPlayerSendTextMessage(cid, config.errorMsgType, "You can only receive from 1 to 100 stackable items.")
+					return false
+				end	
+
+				addOfferForItemCount = tonumber(word[3])
+				if addOfferForItemCount < 1 or addOfferForItemCount > 100 then
+					doPlayerSendTextMessage(cid, config.errorMsgType, "You can only receive from 1 to 100 stackable items.")
+					return false
+				end
 			end
 			
-			
-			
+			itemPayment = 1
+			addOffer = addOfferForItemId
 
-		-- !tradeoff remove
-		elseif (word[1] == "remove") then
+			local addOfferForItemArticle = (word[3] and addOfferForItemCount or (addOfferForItemId:getArticle() ~= "" and addOfferForItemId:getArticle() or ""))
+			local addOfferForItemName = (word[3] and addOfferForItemCount and addOfferForItemId:getPluralName() or addOfferForItemId:getName())
+			messagePayment = "for ".. addOfferForItemArticle .. " ".. (word[3] and addOfferForItemCount or "1") .. "x ".. addOfferForItemName .."."
+		end
+
+		local query = "INSERT INTO trade_off_offers (id, player_id, type, item_id, item_count, item_charges, item_duration, item_name, item_trade, cost, cost_count, date) VALUES (NULL, "
+			.. playerGuid ..", ".. tradeType ..", ".. sellingItemId ..", ".. sellingItemCount ..", ".. sellingItemCharges ..", ".. sellingItemDuration ..", ".. sellingItemName ..", ".. itemPayment ..", " 
+			.. addOffer ..", ".. addOfferForItemCount ..", ".. os.time() ..")"
+
+		if tradeType == 2 then -- Container
+			if not containerItems then
+				doPlayerSendTextMessage(cid, config.errorMsgType, "You can not have containers with items inside the main container.")
+				return false
+			end
+
+			db.query(query)
+
+			for i = 1, #containerItems do
+				db.query("INSERT INTO trade_off_container_items (offer_id, item_id, item_charges, item_duration, count) VALUES (LAST_INSERT_ID(), "
+				..containerItems[i].id..", "..containerItems[i].charges..", "..containerItems[i].duration..", "..containerItems[i].count..")")
+			end
+
+			message = " with ".. #containerItems .." items inside"
+		else
+			db.query(query)
+		end
+
+		doPlayerSendTextMessage(cid, config.successMsgType, "You announced ".. sellingItemArticle .. " ".. sellingItemCount .. "x ".. sellingItemName .."".. message .." "
+		.. messagePayment .." Check out the offer id on the website.")
+	
+		sellingItem:remove(1)
+
+	-- !tradeoff remove
+	elseif (word[1] == "remove") then
 			if (word[2]) then
 				-- !tradeoff remove, offerID
 				if isNumber(word[2]) and tonumber(word[2]) then
@@ -539,7 +535,7 @@ function onSay(player, words, param)
 								if not (getPlayerItemCount(cid, cost) >= costCount) then
 									result.free(queryResult)
 									doPlayerSendTextMessage(cid, config.errorMsgType, "You don't have "..count.." "..itemCostName.." to buy this offer.")
-									return true
+									return false
 								elseif getItemDefaultDuration(cost) > 0 or getItemInfo(cost).charges > 0 then
 									local item = getPlayerSlotItem(cid, CONST_SLOT_AMMO)
 									if (item.uid > 0 and item.id == cost) then
@@ -547,7 +543,7 @@ function onSay(player, words, param)
 											if getItemDuration(item.uid) < getItemDefaultDuration(cost) then
 												result.free(queryResult)
 												doPlayerSendTextMessage(cid, config.errorMsgType, "The "..itemCostName.." needs to be brand new.")
-												return true
+												return false
 											end
 										elseif getItemInfo(cost).charges > 0 then
 											ogCostCount = costCount
@@ -555,12 +551,12 @@ function onSay(player, words, param)
 											if item.type < getItemInfo(cost).charges then
 												result.free(queryResult)
 												doPlayerSendTextMessage(cid, config.errorMsgType, "The "..itemCostName.." needs to be brand new.")
-												return true
+												return false
 											end
 										end
 									else
 										doPlayerSendTextMessage(cid, config.errorMsgType, "You need to put the "..itemCostName.." in your ammunition slot.")
-										return true
+										return false
 									end
 								end
 								local ownerTownID						
@@ -586,7 +582,7 @@ function onSay(player, words, param)
 								if not (getPlayerMoney(cid) >= cost) then
 									result.free(queryResult)
 									doPlayerSendTextMessage(cid, config.errorMsgType, "You don't have enough money to buy this offer.")
-									return true
+									return false
 								end
 								if isPlayerOnline(getPlayerNameByGUID(owner)) then
 									local ownerCID = getPlayerByGUID(owner)
@@ -672,7 +668,7 @@ function onSay(player, words, param)
 	else
 		doPlayerSendTextMessage(cid, config.infoMsgType, config.helpMsg)
 	end	
-	return true
+	return false
 end
 
 function getOfferID()

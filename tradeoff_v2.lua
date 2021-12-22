@@ -2,7 +2,7 @@
 
 local config = {
 	priceLimit = 2000000000, -- 2kkk
-	offerLimit = 3,
+	maxOffersPerPlayer = 5,
 	offerLimitStor = 86420,
 	exhaustionStorage = 86421,
 	infoOnPopUp = true,
@@ -11,12 +11,10 @@ local config = {
 	successMsgType = MESSAGE_INFO_DESCR,
 	helpMsg = "Enter the parameters (add, remove, active, buy, info).",
 	goldItems = {2148, 2152, 2160},
-	itemsVIP = {4540, 4545, 4560},
+	levelRequiredToAdd = 20,
 }
 
 local config = {
-	levelRequiredToAdd = 20,
-	maxOffersPerPlayer = 5,
 	valuePerOffer = 500,
 	blockedItems = {2165, 2152, 2148, 2160, 2166, 2167, 2168, 2169, 2202, 2203, 2204, 2205, 2206, 2207, 2208, 2209, 2210, 2211, 2212, 2213, 2214, 2215, 2343, 2433, 2640, 6132, 6300, 6301, 9932, 9933}
 }
@@ -100,7 +98,7 @@ function onSay(player, words, param)
 	if word[1] == "add" then
 
 		if player:getLevel() < config.levelRequiredToAdd then
-			player:sendTextMessage(MESSAGE_STATUS_CONSOLE_BLUE, "You don't have required level ".. config.levelRequiredToAdd ..".")
+			player:sendTextMessage(config.errorMsgType, "You don't have required level ".. config.levelRequiredToAdd ..".")
 			player:getPosition():sendMagicEffect(CONST_ME_POFF)
 			return false
 		end
@@ -116,7 +114,7 @@ function onSay(player, words, param)
 		end
 
 		if offers >= config.maxOffersPerPlayer then
-			player:sendTextMessage(MESSAGE_STATUS_CONSOLE_BLUE, "Sorry you can't add more offers (max. " .. config.maxOffersPerPlayer .. ")")
+			player:sendTextMessage(config.errorMsgType, "Sorry you can't add more offers (max. " .. config.maxOffersPerPlayer .. ")")
 			player:getPosition():sendMagicEffect(CONST_ME_POFF)
 			return false
 		end
@@ -130,23 +128,27 @@ function onSay(player, words, param)
 		local item = player:getSlotItem(CONST_SLOT_AMMO)
 		local sellingItem = ItemType(item.uid)
 		if not sellingItem then
-			doPlayerSendTextMessage(cid, config.errorMsgType, "To create an offer the item must be in the ammunition slot.")
+			player:sendTextMessage(config.errorMsgType, "To create an offer the item must be in the ammunition slot.")
+			player:getPosition():sendMagicEffect(CONST_ME_POFF)
 			return false
 		end
 
 		local sellingItemId = sellingItem:getId()
 		if sellingItemId == 0 then
-			doPlayerSendTextMessage(cid, config.errorMsgType, "To create an offer the item must be in the ammunition slot.")
+			player:sendTextMessage(config.errorMsgType, "To create an offer the item must be in the ammunition slot.")
+			player:getPosition():sendMagicEffect(CONST_ME_POFF)
 			return false
 		end
 
 		if not sellingItem:isMoveable() or not sellingItem:isPickupable() then
-			doPlayerSendTextMessage(cid, config.errorMsgType, "You cannot add this item type as an offer.")
+			player:sendTextMessage(config.errorMsgType, "You cannot add this item type as an offer.")
+			player:getPosition():sendMagicEffect(CONST_ME_POFF)
 			return false
 		end
 
 		if sellingItem:isCorpse() then
-			doPlayerSendTextMessage(cid, config.errorMsgType, "You cannot add a corpse as an offer.")
+			player:sendTextMessage(config.errorMsgType, "You cannot add a corpse as an offer.")
+			player:getPosition():sendMagicEffect(CONST_ME_POFF)
 			return false
 		end
 
@@ -168,8 +170,8 @@ function onSay(player, words, param)
 			end
 		end
 
-		local sellingItemArticle = (count > 1 and count or (sellingItem:getArticle() ~= "" and sellingItem:getArticle() or ""))
-		local sellingItemName = (count > 1 and sellingItem:getPluralName() or sellingItem:getName())
+		local sellingItemArticle = (sellingItemCount > 1 and sellingItemCount or (sellingItem:getArticle() ~= "" and sellingItem:getArticle() or ""))
+		local sellingItemName = (sellingItemCount > 1 and sellingItem:getPluralName() or sellingItem:getName())
 
 		local containerItems = getContainerItems(item.uid)
 		local tradeType = 1 -- no container
@@ -190,17 +192,20 @@ function onSay(player, words, param)
 
 			if table.contains(config.goldItems, sellingItemId) then
 				player:sendTextMessage(config.errorMsgType, "You can't trade gold for gold.")
+				player:getPosition():sendMagicEffect(CONST_ME_POFF)
 				return false
 			end
 
 			local addOfferForMoney = tonumber(word[2])
 			if addOfferForMoney < 1 then
-				doPlayerSendTextMessage(cid, config.errorMsgType, "The offer must have a value greater than 0.")
+				player:sendTextMessage(config.errorMsgType, "The offer must have a value greater than 0.")
+				player:getPosition():sendMagicEffect(CONST_ME_POFF)
 				return false
 			end			
 
 			if addOfferForMoney > config.priceLimit then
-				doPlayerSendTextMessage(cid, config.errorMsgType, "The offer may not exceed the value of "..config.priceLimit.." gold coins.")
+				player:sendTextMessage(config.errorMsgType, "The offer may not exceed the value of "..config.priceLimit.." gold coins.")
+				player:getPosition():sendMagicEffect(CONST_ME_POFF)
 				return false
 			end
 
@@ -213,45 +218,53 @@ function onSay(player, words, param)
 			local addOfferForItemId = ItemType(word[2]):getId()
 
 			if not addOfferForItemId then
-				doPlayerSendTextMessage(cid, config.errorMsgType, "This item does not exist, check if it's name is correct.")
+				player:sendTextMessage(config.errorMsgType, "This item does not exist, check if it's name is correct.")
+				player:getPosition():sendMagicEffect(CONST_ME_POFF)
 				return false
 			end
 
 			if table.contains(config.goldItems, addOfferForItemId) then
-				doPlayerSendTextMessage(cid, config.errorMsgType, "To sell for gold insert only the amount instead of item name.")
+				player:sendTextMessage(config.errorMsgType, "To sell for gold insert only the amount instead of item name.")
+				player:getPosition():sendMagicEffect(CONST_ME_POFF)
 				return false
 			end
 
 			if addOfferForItemId == sellingItemId then
-				doPlayerSendTextMessage(cid, config.errorMsgType, "You can not trade equal items.")
+				player:sendTextMessage(config.errorMsgType, "You can not trade equal items.")
+				player:getPosition():sendMagicEffect(CONST_ME_POFF)
 				return false
 			end
 
 			if addOfferForItemId:isCorpse() then
-				doPlayerSendTextMessage(cid, config.errorMsgType, "You can not buy a corpse.")
+				player:sendTextMessage(config.errorMsgType, "You can not buy a corpse.")
+				player:getPosition():sendMagicEffect(CONST_ME_POFF)
 				return false
 			end
 
 			if not addOfferForItemId:isMoveable() or not addOfferForItemId:isPickupable() then
-				doPlayerSendTextMessage(cid, config.errorMsgType, "You cannot request this type of payment item.")
+				player:sendTextMessage(config.errorMsgType, "You cannot request this type of payment item.")
+				player:getPosition():sendMagicEffect(CONST_ME_POFF)
 				return false
 			end
 
 			-- !tradeoff add, item, count
 			if word[3] then
 				if not addOfferForItemId:isStackable() then
-					doPlayerSendTextMessage(cid, config.errorMsgType, "You can only select the quantity with stackable items.")
+					player:sendTextMessage(config.errorMsgType, "You can only select the quantity with stackable items.")
+					player:getPosition():sendMagicEffect(CONST_ME_POFF)
 					return false
 				end
 
 				if not isNumber(word[3]) then
-					doPlayerSendTextMessage(cid, config.errorMsgType, "You can only receive from 1 to 100 stackable items.")
+					player:sendTextMessage(config.errorMsgType, "You can only receive from 1 to 100 stackable items.")
+					player:getPosition():sendMagicEffect(CONST_ME_POFF)
 					return false
 				end	
 
 				addOfferForItemCount = tonumber(word[3])
 				if addOfferForItemCount < 1 or addOfferForItemCount > 100 then
-					doPlayerSendTextMessage(cid, config.errorMsgType, "You can only receive from 1 to 100 stackable items.")
+					player:sendTextMessage(config.errorMsgType, "You can only receive from 1 to 100 stackable items.")
+					player:getPosition():sendMagicEffect(CONST_ME_POFF)
 					return false
 				end
 			end
@@ -270,7 +283,8 @@ function onSay(player, words, param)
 
 		if tradeType == 2 then -- Container
 			if not containerItems then
-				doPlayerSendTextMessage(cid, config.errorMsgType, "You can not have containers with items inside the main container.")
+				player:sendTextMessage(config.errorMsgType, "You can not have containers with items inside the main container.")
+				player:getPosition():sendMagicEffect(CONST_ME_POFF)
 				return false
 			end
 
@@ -286,91 +300,124 @@ function onSay(player, words, param)
 			db.query(query)
 		end
 
-		doPlayerSendTextMessage(cid, config.successMsgType, "You announced ".. sellingItemArticle .. " ".. sellingItemCount .. "x ".. sellingItemName .."".. message .." "
+		player:sendTextMessage(config.successMsgType, "You announced ".. sellingItemArticle .. " ".. sellingItemCount .. "x ".. sellingItemName .."".. message .." "
 		.. messagePayment .." Check out the offer id on the website.")
 	
 		sellingItem:remove(1)
 
 	-- !tradeoff remove
-	elseif (word[1] == "remove") then
-			if (word[2]) then
-				-- !tradeoff remove, offerID
-				if isNumber(word[2]) and tonumber(word[2]) then
-					local offerID = tonumber(word[2])
-					local queryResult = db.storeQuery("SELECT * FROM trade_off_offers WHERE id = "..offerID)
-					if queryResult then
-						local playerID = result.getDataInt(queryResult, "player_id")
-						if getPlayerGUID(cid) == playerID then
-							local parcel = doCreateItemEx(ITEM_PARCEL)
-							local itemID = result.getDataInt(queryResult, "item_id")
-							if isItemContainer(itemID) then
-								local itemsInside = db.storeQuery("SELECT * FROM trade_off_container_items WHERE offer_id = "..offerID)
-								if itemsInside then
-									local container = doCreateItemEx(itemID)
-									while itemsInside ~= false do
-										local subID = result.getDataInt(itemsInside, "item_id")
-										local subCharges = result.getDataInt(itemsInside, "item_charges")
-										local subDuration = result.getDataInt(itemsInside, "item_duration")
-										local subCount = result.getDataInt(itemsInside, "count")
-										if subDuration > 0 then
-											local subItem = doCreateItemEx(subID)
-											doItemSetDuration(subItem, subDuration)
-											doAddContainerItemEx(container, subItem)										
-										else
-											local subItem
-											if subCharges > 0 then
-												subItem = doCreateItemEx(subID, subCharges)
-											else
-												subItem = doCreateItemEx(subID, subCount)
-											end
-											doAddContainerItemEx(container, subItem)
-										end
-										if (not result.next(itemsInside)) then
-											break
-										end
-									end
-									result.free(itemsInside)
-									db.query("DELETE FROM trade_off_container_items WHERE offer_id = "..offerID)
-									doAddContainerItemEx(parcel, container)
-								else
-									local item = doCreateItemEx(itemID)
-									doAddContainerItemEx(parcel, item)
-								end
-							else
-								local itemCount = result.getDataInt(queryResult, "item_count")
-								local itemCharges = result.getDataInt(itemsInside, "item_charges")
-								local itemDuration = result.getDataInt(itemsInside, "item_duration")								
-								if itemDuration > 0 then
-									local item = doCreateItemEx(itemID)
-									doItemSetDuration(item, itemDuration)
-									doAddContainerItemEx(parcel, item)
-								else
-									local item
-									if itemCharges > 0 then
-										item = doCreateItemEx(itemID, itemCharges)
-									else
-										item = doCreateItemEx(itemID, itemCount)
-									end
-									doAddContainerItemEx(parcel, item)
-								end
-							end
-							result.free(queryResult)
-							db.query("DELETE FROM trade_off_offers WHERE id = "..offerID)
-							setPlayerStorageValue(cid, config.offerLimitStor, numOffer-1)
-							doPlayerSendMailByName(getPlayerName(cid), parcel, getPlayerTown(cid))
-							doPlayerSendTextMessage(cid, config.successMsgType, "You canceled your offer with ID: "..offerID..", the respective offer items were sent to "..getTownName(getPlayerTown(cid)).." depot.")
-						else
-							doPlayerSendTextMessage(cid, config.errorMsgType, "You can not remove someone else's offer.")
-						end
+	elseif word[1] == "remove" then
+		if not word[2] then
+			player:sendTextMessage(config.errorMsgType, "Please enter the offerID you want to remove.")
+			player:getPosition():sendMagicEffect(CONST_ME_POFF)
+			return false
+		end	
+		
+		-- !tradeoff remove, offerID
+		if not isNumber(word[2]) then
+			player:sendTextMessage(config.errorMsgType, "Please, insert only numbers.")
+			player:getPosition():sendMagicEffect(CONST_ME_POFF)
+			return false
+		end
+
+		local offerID = tonumber(word[2])
+		local queryResult = db.storeQuery("SELECT * FROM trade_off_offers WHERE id = ".. offerID)
+		local resultId = db.storeQuery("SELECT `id` FROM `guilds` WHERE `name` = " .. db.escapeString(enemyName))
+		if not queryResult then
+			player:sendTextMessage(config.errorMsgType, "Please, insert a valid offer ID.")
+			player:getPosition():sendMagicEffect(CONST_ME_POFF)
+			return false
+		end
+
+		local playerID = result.getNumber(queryResult, "player_id")
+		local playerGuid = player:getGuid()
+
+		if playerGuid ~= playerID then
+			player:sendTextMessage(config.errorMsgType, "You can not remove someone else's offer.")
+			player:getPosition():sendMagicEffect(CONST_ME_POFF)
+			return false
+		end
+
+		local parcel = Game.createItem(ITEM_PARCEL)
+		local itemID = result.getNumber(queryResult, "item_id")
+		
+		if ItemType(itemID):isContainer() then
+			local itemRemove = Game.createItem(itemID)
+			local itemsInside = db.storeQuery("SELECT * FROM trade_off_container_items WHERE offer_id = ".. offerID)
+			if itemsInside ~= false then
+				repeat
+					local subID = result.getNumber(itemsInside, "item_id")
+					local subCharges = result.getNumber(itemsInside, "item_charges")
+					local subDuration = result.getNumber(itemsInside, "item_duration")
+					local subCount = result.getNumber(itemsInside, "count")
+
+					if subDuration > 0 then
+						local subItem = Game.createItem(subID)
+						subItem:setAttribute(ITEM_ATTRIBUTE_DURATION, subDuration)
+						itemRemove:addItemEx(Item(subItem))
 					else
-						doPlayerSendTextMessage(cid, config.errorMsgType, "Please, insert a valid offer ID.")
+						local subItem
+						if subCharges > 0 then
+							subItem = Game.createItem(subID, subCharges)
+						else
+							subItem = Game.createItem(subID, subCount)
+						end
+						itemRemove:addItemEx(Item(subItem))
 					end
-				else
-					doPlayerSendTextMessage(cid, config.errorMsgType, "Please, insert only numbers.")
-				end
-			else
-				doPlayerSendTextMessage(cid, config.errorMsgType, "Please enter the offerID you want to remove.")
+
+				until not result.next(resultId)
+				result.free(itemsInside)
+				
+				db.query("DELETE FROM trade_off_container_items WHERE offer_id = ".. offerID)
 			end
+
+			parcel:addItemEx(Item(itemRemove))
+
+		else
+			local itemCount = result.getDataInt(queryResult, "item_count")
+			local itemCharges = result.getDataInt(itemsInside, "item_charges")
+			local itemDuration = result.getDataInt(itemsInside, "item_duration")								
+			
+			if itemDuration > 0 then
+				local item = Game.createItem(itemID)
+				item:setAttribute(ITEM_ATTRIBUTE_DURATION, itemDuration)
+				parcel:addItemEx(Item(item))
+			else
+				local item
+				if itemCharges > 0 then
+					item = Game.createItem(itemID, itemCharges)
+				else
+					item = Game.createItem(itemID, itemCount)
+				end
+				
+				parcel:addItemEx(Item(item))
+			end
+		end
+
+		result.free(queryResult)
+		db.query("DELETE FROM trade_off_offers WHERE id = ".. offerID)
+
+		local townId = Town(player:getTown():getId())	
+		local townName = townId:getName()
+
+		doPlayerSendMailByName(player:getName(), parcel, townId)
+		
+	--[[local parcel = Game.createItem(ITEM_PARCEL)
+	local letter = Game.createItem(2598)
+	letter:setAttribute(ITEM_ATTRIBUTE_TEXT, "funcionou")
+
+	parcel:addItemEx(letter)
+	parcel:addItem(11263)
+
+	local depot = player:getDepotChest(1, true)
+    if depot then
+		depot:addItemEx(parcel)
+		player:sendTextMessage(MESSAGE_STATUS_CONSOLE_BLUE, "enviado depot ...")
+    end
+	]]--
+		
+		player:sendTextMessage(config.successMsgType, "You canceled your offer with ID: ".. offerID ..", the respective offer items were sent to ".. townName .." depot.")
+
 		-- !tradeoff active
 		elseif (word[1] == "active") then
 			local queryResult = db.storeQuery("SELECT * FROM trade_off_offers WHERE player_id = "..getPlayerGUID(cid))

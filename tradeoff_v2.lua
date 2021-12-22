@@ -374,9 +374,9 @@ function onSay(player, words, param)
 			parcel:addItemEx(Item(itemRemove))
 
 		else
-			local itemCount = result.getDataInt(queryResult, "item_count")
-			local itemCharges = result.getDataInt(itemsInside, "item_charges")
-			local itemDuration = result.getDataInt(itemsInside, "item_duration")								
+			local itemCount = result.getNumber(queryResult, "item_count")
+			local itemCharges = result.getNumber(itemsInside, "item_charges")
+			local itemDuration = result.getNumber(itemsInside, "item_duration")								
 			
 			if itemDuration > 0 then
 				local item = Game.createItem(itemID)
@@ -399,33 +399,24 @@ function onSay(player, words, param)
 
 		local townId = Town(player:getTown():getId())	
 		local townName = townId:getName()
-
-		doPlayerSendMailByName(player:getName(), parcel, townId)
-		
-	--[[local parcel = Game.createItem(ITEM_PARCEL)
-	local letter = Game.createItem(2598)
-	letter:setAttribute(ITEM_ATTRIBUTE_TEXT, "funcionou")
-
-	parcel:addItemEx(letter)
-	parcel:addItem(11263)
-
-	local depot = player:getDepotChest(1, true)
-    if depot then
-		depot:addItemEx(parcel)
-		player:sendTextMessage(MESSAGE_STATUS_CONSOLE_BLUE, "enviado depot ...")
-    end
-	]]--
-		
-		player:sendTextMessage(config.successMsgType, "You canceled your offer with ID: ".. offerID ..", the respective offer items were sent to ".. townName .." depot.")
+		local letter = Game.createItem(2598)
+		letter:setAttribute(ITEM_ATTRIBUTE_TEXT, "You canceled your offer with ID: ".. offerID ..".")
+		parcel:addItemEx(Item(letter))
+		local depot = player:getDepotChest(townId, true)
+		if depot then
+			depot:addItemEx(parcel)
+			player:sendTextMessage(config.successMsgType, "You canceled your offer with ID: ".. offerID ..", the respective offer items were sent to ".. townName .." depot.")
+		end
 
 		-- !tradeoff active
-		elseif (word[1] == "active") then
-			local queryResult = db.storeQuery("SELECT * FROM trade_off_offers WHERE player_id = "..getPlayerGUID(cid))
-			if queryResult then
+		elseif word[1] == "active" then
+			local playerGuid = player:getGuid()
+			local queryResult = db.storeQuery("SELECT * FROM trade_off_offers WHERE player_id = ".. playerGuid)
+			if queryResult ~= false then
 				local offersString = ""
 				while queryResult ~= false do
-					local offerID = result.getDataInt(queryResult, "id")
-					if (not result.next(queryResult)) then
+					local offerID = result.getNumber(queryResult, "id")
+					if not result.next(queryResult) then
 						offersString = offersString .. offerID
 						break
 					else
@@ -433,45 +424,66 @@ function onSay(player, words, param)
 					end
 				end
 				result.free(queryResult)
-				doPlayerSendTextMessage(cid, config.infoMsgType, "Active offers ID: "..offersString..".")
+				player:sendTextMessage(config.successMsgType, "Active offers ID: ".. offersString ..".")
 			else
-				doPlayerSendTextMessage(cid, config.infoMsgType, "You don't have any active offers.")
+				player:sendTextMessage(config.errorMsgType, "You don't have any active offers.".)
+				player:getPosition():sendMagicEffect(CONST_ME_POFF)
 			end
+
 		-- !tradeoff info
-		elseif (word[1] == "info") then
-			if (word[2]) then
-				-- !tradeoff info, offerID
-				if isNumber(word[2]) and tonumber(word[2]) then
-					local offerID = tonumber(word[2])
-					local queryResult = db.storeQuery("SELECT * FROM trade_off_offers WHERE id = "..offerID)
-					if queryResult then
-						local playerID = result.getDataInt(queryResult, "player_id")
-						local tradeType = result.getDataInt(queryResult, "type")
-						local itemID = result.getDataInt(queryResult, "item_id")
-						local itemCount = result.getDataInt(queryResult, "item_count")
-						local itemCharges = result.getDataInt(queryResult, "item_charges")
-						local itemDuration = result.getDataInt(queryResult, "item_duration")
-						local itemName = result.getDataString(queryResult, "item_name")
-						local isTrade = result.getDataInt(queryResult, "item_trade")
-						local cost = result.getDataLong(queryResult, "cost")
-						local costCount = result.getDataInt(queryResult, "cost_count")
-						local addedDate = result.getDataLong(queryResult, "date")
-						
-						local normalItem
-						local offerCount
-						if itemDuration > 0 or itemCharges > 0 then
-							normalItem = false
-							if itemDuration > 0 then
-								offerCount = " with "..getTimeString(itemDuration).." left"
-							elseif itemCharges > 0 then
-								local plural = itemCharges > 1 and "s" or ""
-								offerCount = " with "..itemCharges.." charge"..plural.." left"
-							end
-						else
-							normalItem = true
-							offerCount = itemCount > 1 and itemCount or getItemArticleById(itemID)
-						end
-						
+		elseif word[1] == "info" then
+			if not word[2] then
+				player:sendTextMessage(config.errorMsgType, "Please enter the offerID you want to know about.")
+				player:getPosition():sendMagicEffect(CONST_ME_POFF)
+				return false
+			end
+
+			if not isNumber(word[2]) then
+				player:sendTextMessage(config.errorMsgType, "Please, insert only numbers.")
+				player:getPosition():sendMagicEffect(CONST_ME_POFF)
+				return false
+			end
+
+			local offerID = tonumber(word[2])
+			local queryResult = db.storeQuery("SELECT * FROM trade_off_offers WHERE id = "..offerID)
+
+			if not queryResult then
+				player:sendTextMessage(config.errorMsgType, "Please, insert a valid offer ID.")
+				player:getPosition():sendMagicEffect(CONST_ME_POFF)
+				return false
+			end
+
+			local playerID = result.getNumber(queryResult, "player_id")
+			local tradeType = result.getNumber(queryResult, "type")
+			local itemID = result.getNumber(queryResult, "item_id")
+			local itemCount = result.getNumber(queryResult, "item_count")
+			local itemCharges = result.getNumber(queryResult, "item_charges")
+			local itemDuration = result.getNumber(queryResult, "item_duration")
+			local itemName = result.getString(queryResult, "item_name")
+			local isTrade = result.getNumber(queryResult, "item_trade")
+			local cost = result.getDataLong(queryResult, "cost")
+			local costCount = result.getNumber(queryResult, "cost_count")
+			local addedDate = result.getDataLong(queryResult, "date")
+
+			local normalItem
+			local offerCount
+
+			if itemDuration > 0 or itemCharges > 0 then
+				normalItem = false
+				if itemDuration > 0 then
+					offerCount = " with "..getTimeString(itemDuration).." left"
+				elseif itemCharges > 0 then
+					local plural = itemCharges > 1 and "s" or ""
+					offerCount = " with "..itemCharges.." charge"..plural.." left"
+				end
+			else
+				normalItem = true
+				offerCount = itemCount > 1 and itemCount or getItemArticleById(itemID)
+			end
+
+
+
+
 						local tradeTypes = {[0] = "Sale", [1] = "Item VIP", [2] = "Container", [3] = "Trade"}
 						local typeString = isTrade > 0 and tradeTypes[3] or tradeTypes[tradeType]
 						
@@ -489,10 +501,10 @@ function onSay(player, words, param)
 								local itemsInsideString = "("
 								while itemsInside ~= false do
 									numItems = numItems + 1								
-									local subID = result.getDataInt(itemsInside, "item_id")
-									local subCharges = result.getDataInt(itemsInside, "item_charges")
-									local subDuration = result.getDataInt(itemsInside, "item_duration")
-									local subCount = result.getDataInt(itemsInside, "count")
+									local subID = result.getNumber(itemsInside, "item_id")
+									local subCharges = result.getNumber(itemsInside, "item_charges")
+									local subDuration = result.getNumber(itemsInside, "item_duration")
+									local subCount = result.getNumber(itemsInside, "count")
 
 									local normalItem
 									local offerCount
@@ -544,18 +556,13 @@ function onSay(player, words, param)
 						
 						result.free(queryResult)
 						if config.infoOnPopUp then
-							doPlayerPopupFYI(cid, information)
+							player:popupFYI(information)
 						else
 							doPlayerSendTextMessage(cid, config.infoMsgType, information)
 						end
 					else
 						doPlayerSendTextMessage(cid, config.errorMsgType, "Please, insert a valid offer ID.")
 					end
-				else
-					doPlayerSendTextMessage(cid, config.errorMsgType, "Please, insert only numbers.")
-				end
-			else
-				doPlayerSendTextMessage(cid, config.errorMsgType, "Please enter the offerID you want to know about.")
 			end
 		-- !tradeoff buy
 		elseif (word[1] == "buy") then
@@ -565,18 +572,18 @@ function onSay(player, words, param)
 					local offerID = tonumber(word[2])
 					local queryResult = db.storeQuery("SELECT * FROM trade_off_offers WHERE id = "..offerID)
 					if queryResult then
-						local owner = result.getDataInt(queryResult, "player_id")
+						local owner = result.getNumber(queryResult, "player_id")
 						if getPlayerGUID(cid) ~= owner then
-							local itemID = result.getDataInt(queryResult, "item_id")
-							local itemCount = result.getDataInt(queryResult, "item_count")
-							local itemCharges = result.getDataInt(itemsInside, "item_charges")
-							local itemDuration = result.getDataInt(itemsInside, "item_duration")
-							local isTrade = result.getDataInt(queryResult, "item_trade")
+							local itemID = result.getNumber(queryResult, "item_id")
+							local itemCount = result.getNumber(queryResult, "item_count")
+							local itemCharges = result.getNumber(itemsInside, "item_charges")
+							local itemDuration = result.getNumber(itemsInside, "item_duration")
+							local isTrade = result.getNumber(queryResult, "item_trade")
 							local cost = result.getDataLong(queryResult, "cost")
 							
 							if isTrade > 0 then
 								local ogCostCount
-								local costCount = result.getDataInt(queryResult, "cost_count")
+								local costCount = result.getNumber(queryResult, "cost_count")
 								local itemCostName = getItemNameByCount(cost, costCount)
 								local count = costCount > 1 and costCount or getItemArticleById(cost)
 								if not (getPlayerItemCount(cid, cost) >= costCount) then
@@ -613,7 +620,7 @@ function onSay(player, words, param)
 									doPlayerSendTextMessage(getPlayerByGUID(owner), config.successMsgType, "The player "..getPlayerName(cid).." just bought your offer with ID: "..offerID..", "..count.." "..itemCostName.." was sent to your "..getTownName(ownerTownID).." depot.")
 								else
 									local getTown = db.storeQuery("SELECT town_id FROM players WHERE id = "..owner)
-									ownerTownID = result.getDataInt(getTown, "town_id")
+									ownerTownID = result.getNumber(getTown, "town_id")
 									result.free(getTown)
 									setOfflinePlayerStorage(owner, config.offerLimitStor, (tonumber(getOfflinePlayerStorage(owner, config.offerLimitStor))-1))
 								end
@@ -652,10 +659,10 @@ function onSay(player, words, param)
 								if itemsInside then
 									local container = doCreateItemEx(itemID)
 									while itemsInside ~= false do
-										local subID = result.getDataInt(itemsInside, "item_id")
-										local subCharges = result.getDataInt(itemsInside, "item_charges")
-										local subDuration = result.getDataInt(itemsInside, "item_duration")
-										local subCount = result.getDataInt(itemsInside, "count")
+										local subID = result.getNumber(itemsInside, "item_id")
+										local subCharges = result.getNumber(itemsInside, "item_charges")
+										local subDuration = result.getNumber(itemsInside, "item_duration")
+										local subCount = result.getNumber(itemsInside, "count")
 										if subDuration > 0 then
 											local subItem = doCreateItemEx(subID)
 											doItemSetDuration(subItem, subDuration)
@@ -721,7 +728,7 @@ end
 function getOfferID()
 	local queryResult = db.storeQuery("SELECT LAST_INSERT_ID()")
 	if (queryResult) then
-		local offerID = result.getDataInt(queryResult, "LAST_INSERT_ID()")
+		local offerID = result.getNumber(queryResult, "LAST_INSERT_ID()")
 		result.free(queryResult)
 		return offerID
 	end

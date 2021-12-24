@@ -465,155 +465,188 @@ function onSay(player, words, param)
 			local costCount = result.getNumber(queryResult, "cost_count")
 			local addedDate = result.getDataLong(queryResult, "date")
 
-			local normalItem
-			local offerCount
+			local normalItem = true
+			local itemInfo = ItemType(itemID)
+			local itemCount = (itemCount > 1 and itemCount or (itemInfo:getArticle() ~= "" and itemInfo:getArticle() or ""))
+			local itemName = (itemCount > 1 and itemInfo:getPluralName() or itemInfo:getName())
 
-			if itemDuration > 0 or itemCharges > 0 then
+			local itemDurationOrCharge = ""
+			if itemDuration > 0 then
 				normalItem = false
-				if itemDuration > 0 then
-					offerCount = " with "..getTimeString(itemDuration).." left"
-				elseif itemCharges > 0 then
-					local plural = itemCharges > 1 and "s" or ""
-					offerCount = " with "..itemCharges.." charge"..plural.." left"
+				itemDurationOrCharge = " with ".. getString(itemDuration) .." left" -- ???????????????????????????????????????????????????????????????????????
+			elseif itemCharges > 0 then
+				normalItem = false
+				local plural = itemCharges > 1 and "s" or ""
+				itemDurationOrCharge = " with ".. itemCharges .." charge".. plural .." left"			
+			end
+
+			local information = "[TRADE OFF] Information:\n"
+			information = information .. "Offer: ".. itemCount .." "..itemName.. (normalItem and "" or (itemDurationOrCharge ~= "" and itemDurationOrCharge or ""))
+
+			if itemInfo:isContainer() then
+				local numItems = 0
+				local itemsInside = db.storeQuery("SELECT * FROM trade_off_container_items WHERE offer_id = "..offerID)
+				if itemsInside ~= false then
+					local itemsContainerMessage = "("
+					while itemsInside ~= false do
+						numItems = numItems + 1								
+						local subID = result.getNumber(itemsInside, "item_id")
+						local subCharges = result.getNumber(itemsInside, "item_charges")
+						local subDuration = result.getNumber(itemsInside, "item_duration")
+						local subCount = result.getNumber(itemsInside, "count")
+
+						normalItem = true
+						local subItemInfo = ItemType(subID)
+						local subItemCount = (subCount > 1 and subCount or (subItemInfo:getArticle() ~= "" and subItemInfo:getArticle() or ""))
+						local subItemName = (subCount > 1 and subItemInfo:getPluralName() or subItemInfo:getName())
+
+						itemDurationOrCharge = ""
+						if subDuration > 0 then
+							normalItem = false
+							itemDurationOrCharge = " with ".. getString(subDuration) .." left" -- ???????????????????????????????????????????????????????????????????????
+						elseif subCharges > 0 then
+							normalItem = false
+							local plural = subCharges > 1 and "s" or ""
+							itemDurationOrCharge = " with ".. subCharges .." charge".. plural .." left"			
+						end
+
+						if not result.next(itemsInside) then
+							itemsContainerMessage = itemsContainerMessage .. subItemCount .. " " .. subItemName .. (normalItem and "" or (itemDurationOrCharge ~= "" and itemDurationOrCharge or "")) ..").\n"
+							break
+						else
+							itemsContainerMessage = itemsContainerMessage .. subItemCount .. " " .. subItemName .. (normalItem and "" or (itemDurationOrCharge ~= "" and itemDurationOrCharge or "")) ..", "
+						end
+					end
+
+					result.free(itemsInside)
+					information = information .." with "..numItems.." items inside.\n"
+					information = information ..itemsContainerMessage
 				end
 			else
-				normalItem = true
-				offerCount = itemCount > 1 and itemCount or getItemArticleById(itemID)
+				information = information ..".\n"
 			end
 
+			local tradeTypes = {[1] = "Item", [2] = "Container", [3] = "Trade"}
+			local typeString = isTrade > 0 and tradeTypes[3] or tradeTypes[tradeType]
+			
+			if isTrade == 0 then -- dinheiro como pagamento
+				information = information .. "Price: ".. cost .." gold coins.\n"
+			else -- item como pagamento
+				local costItemType = ItemType(cost)
+				local costItemCount = (costCount > 1 and costCount or (costItemType:getArticle() ~= "" and costItemType:getArticle() or ""))
+				local costItemName = (subCount > 1 and subItemInfo:getPluralName() or subItemInfo:getName())
+				information = information .. "Price: ".. costItemCount .." ".. costItemName ..".\n"
+			end
 
+			information = information .. "Type: "..typeString..".\n"				
+			information = information .. "Added: "..os.date("%d/%m/%Y at %X%p", addedDate)..".\n"
 
+			local playerNameSellItem = Player(playerID):getName
+			if playerNameSellItem then
+				information = information .. "Added by: ".. playerNameSellItem..".\n"
+			end
 
-						local tradeTypes = {[0] = "Sale", [1] = "Item VIP", [2] = "Container", [3] = "Trade"}
-						local typeString = isTrade > 0 and tradeTypes[3] or tradeTypes[tradeType]
-						
-						local information = "[TRADE OFF] Information:\n"
-						if normalItem then
-							information = information .. "Offer: "..offerCount.." "..itemName
-						else
-							information = information .. "Offer: "..getItemArticleById(itemID).." "..itemName..offerCount
-						end
-						
-						if isItemContainer(itemID) then
-							local numItems = 0
-							local itemsInside = db.storeQuery("SELECT * FROM trade_off_container_items WHERE offer_id = "..offerID)
-							if itemsInside then
-								local itemsInsideString = "("
-								while itemsInside ~= false do
-									numItems = numItems + 1								
-									local subID = result.getNumber(itemsInside, "item_id")
-									local subCharges = result.getNumber(itemsInside, "item_charges")
-									local subDuration = result.getNumber(itemsInside, "item_duration")
-									local subCount = result.getNumber(itemsInside, "count")
+			result.free(queryResult)
+			if config.infoOnPopUp then
+				player:popupFYI(information)
+			else
+				player:sendTextMessage(config.infoMsgType, information)
+			end
 
-									local normalItem
-									local offerCount
-									if subDuration > 0 or subCharges > 0 then
-										normalItem = false
-										if subDuration > 0 then
-											offerCount = " with "..getTimeString(subDuration).." left"
-										elseif subCharges > 0 then
-											local plural = subCharges > 1 and "s" or ""
-											offerCount = " with "..subCharges.." charge"..plural.." left"
-										end					
-									else						
-										normalItem = true
-										offerCount = subCount > 1 and subCount or getItemArticleById(subID)
-									end
-									
-									if (not result.next(itemsInside)) then
-										if normalItem then
-											itemsInsideString = itemsInsideString .. offerCount .. " " .. getItemNameByCount(subID, subCount) .. ").\n"
-										else
-											itemsInsideString = itemsInsideString .. getItemArticleById(subID) .. " " .. getItemNameById(subID) .. offerCount ..").\n"
-										end
-										break
-									else
-										if normalItem then
-											itemsInsideString = itemsInsideString .. offerCount .. " " .. getItemNameByCount(subID, subCount) .. ", "
-										else
-											itemsInsideString = itemsInsideString .. getItemArticleById(subID) .. " " .. getItemNameById(subID) .. offerCount ..", "
-										end									
-									end
-								end
-								result.free(itemsInside)
-								information = information .." with "..numItems.." items inside.\n"
-								information = information ..itemsInsideString
+		-- !tradeoff buy
+		elseif word[1] == "buy" then
+
+			if not word[2] then
+				player:sendTextMessage(config.errorMsgType, "Please enter the offerID you want to know about.")
+				player:getPosition():sendMagicEffect(CONST_ME_POFF)
+				return false
+			end
+
+			if not isNumber(word[2]) then
+				player:sendTextMessage(config.errorMsgType, "Please, insert only numbers.")
+				player:getPosition():sendMagicEffect(CONST_ME_POFF)
+				return false
+			end
+
+			local offerID = tonumber(word[2])
+			local queryResult = db.storeQuery("SELECT * FROM trade_off_offers WHERE id = ".. offerID)
+
+			if not queryResult then
+				player:sendTextMessage(config.errorMsgType, "Please, insert a valid offer ID.")
+				player:getPosition():sendMagicEffect(CONST_ME_POFF)
+				return false
+			end
+
+			
+			--if (word[2]) then
+				-- !tradeoff buy, offerID
+				--if isNumber(word[2]) and tonumber(word[2]) then
+					--local offerID = tonumber(word[2])
+					--local queryResult = db.storeQuery("SELECT * FROM trade_off_offers WHERE id = "..offerID)
+					--if queryResult then
+			
+			local owner = result.getNumber(queryResult, "player_id")
+			local playerGuid = player:getGuid()
+			if playerGuid == owner then
+				player:sendTextMessage(config.errorMsgType, "You can not buy your own offer.")
+				player:getPosition():sendMagicEffect(CONST_ME_POFF)
+				return false
+			end
+
+			local itemID = result.getNumber(queryResult, "item_id")
+			local itemCount = result.getNumber(queryResult, "item_count")
+			local itemCharges = result.getNumber(itemsInside, "item_charges")
+			local itemDuration = result.getNumber(itemsInside, "item_duration")
+			local isTrade = result.getNumber(queryResult, "item_trade")
+			local cost = result.getNumber(queryResult, "cost")
+
+			if isTrade > 0 then
+				local itemCost = ItemType(cost)
+				local ogCostCount
+				local costCount = result.getNumber(queryResult, "cost_count")
+				local itemCostName = (costCount > 1 and itemCost:getPluralName() or itemCost:getName())
+				local itemCostCount = (costCount > 1 and costCount or (itemCost:getArticle() ~= "" and itemCost:getArticle() or ""))
+				result.free(queryResult)
+
+				if player:getItemCount(cost) < costCount then
+					player:sendTextMessage(config.errorMsgType, "You don't have ".. itemCostCount .." ".. itemCostName .." to buy this offer.")
+					player:getPosition():sendMagicEffect(CONST_ME_POFF)
+					return false
+				end
+
+				local itemCostCharges = itemCost:getAttribute(ITEM_ATTRIBUTE_CHARGES)
+				local itemCostDuration = itemCost:getAttribute(ITEM_ATTRIBUTE_DURATION)
+
+				if itemCostCharges or itemCostDuration then
+					local itemSlotAmmo = player:getSlotItem(CONST_SLOT_AMMO)
+					itemSlotAmmo = ItemType(itemSlotAmmo.uid)
+					local itemSlotAmmoId = itemSlotAmmo:getId()
+
+					if itemCostCharges > 0 or itemCostDuration > 0 then
+						if itemCostCharges > 0 and itemSlotAmmoId == cost then
+							local itemSlotAmmoCharges = itemSlotAmmo:getAttribute(ITEM_ATTRIBUTE_CHARGES)
+							if itemSlotAmmoCharges ~= itemCostCharges then					
+								player:sendTextMessage(config.errorMsgType, "The ".. itemCostName .." needs to be brand new.")
+								player:getPosition():sendMagicEffect(CONST_ME_POFF)
+								return false
+							end
+
+						elseif itemCostDuration > 0 and itemSlotAmmoId == cost then
+							local itemSlotAmmoDuration = itemSlotAmmo:getAttribute(ITEM_ATTRIBUTE_DURATION)
+							if itemSlotAmmoDuration ~= itemCostCharges then					
+								player:sendTextMessage(config.errorMsgType, "The ".. itemCostName .." needs to be brand new.")
+								player:getPosition():sendMagicEffect(CONST_ME_POFF)
+								return false
 							end
 						else
-							information = information ..".\n"
+							player:sendTextMessage(config.errorMsgType, "You need to put the "..itemCostName.." in your ammunition slot.")
+							player:getPosition():sendMagicEffect(CONST_ME_POFF)
+							return false
 						end
-						
-						if (isTrade == 0) then
-							information = information .. "Price: "..cost.." gold coins.\n"
-						else
-							local offerCostCount = costCount > 1 and costCount or getItemArticleById(cost)
-							information = information .. "Price: "..offerCostCount.." "..getItemNameById(cost)..".\n"
-						end
-						information = information .. "Type: "..typeString..".\n"				
-						information = information .. "Added: "..os.date("%d/%m/%Y at %X%p", addedDate)..".\n"
-						information = information .. "Added by: "..getPlayerNameByGUID(playerID)..".\n"
-						
-						result.free(queryResult)
-						if config.infoOnPopUp then
-							player:popupFYI(information)
-						else
-							doPlayerSendTextMessage(cid, config.infoMsgType, information)
-						end
-					else
-						doPlayerSendTextMessage(cid, config.errorMsgType, "Please, insert a valid offer ID.")
 					end
-			end
-		-- !tradeoff buy
-		elseif (word[1] == "buy") then
-			if (word[2]) then
-				-- !tradeoff buy, offerID
-				if isNumber(word[2]) and tonumber(word[2]) then
-					local offerID = tonumber(word[2])
-					local queryResult = db.storeQuery("SELECT * FROM trade_off_offers WHERE id = "..offerID)
-					if queryResult then
-						local owner = result.getNumber(queryResult, "player_id")
-						if getPlayerGUID(cid) ~= owner then
-							local itemID = result.getNumber(queryResult, "item_id")
-							local itemCount = result.getNumber(queryResult, "item_count")
-							local itemCharges = result.getNumber(itemsInside, "item_charges")
-							local itemDuration = result.getNumber(itemsInside, "item_duration")
-							local isTrade = result.getNumber(queryResult, "item_trade")
-							local cost = result.getDataLong(queryResult, "cost")
-							
-							if isTrade > 0 then
-								local ogCostCount
-								local costCount = result.getNumber(queryResult, "cost_count")
-								local itemCostName = getItemNameByCount(cost, costCount)
-								local count = costCount > 1 and costCount or getItemArticleById(cost)
-								if not (getPlayerItemCount(cid, cost) >= costCount) then
-									result.free(queryResult)
-									doPlayerSendTextMessage(cid, config.errorMsgType, "You don't have "..count.." "..itemCostName.." to buy this offer.")
-									return false
-								elseif getItemDefaultDuration(cost) > 0 or getItemInfo(cost).charges > 0 then
-									local item = getPlayerSlotItem(cid, CONST_SLOT_AMMO)
-									if (item.uid > 0 and item.id == cost) then
-										if getItemDefaultDuration(cost) > 0 then
-											if getItemDuration(item.uid) < getItemDefaultDuration(cost) then
-												result.free(queryResult)
-												doPlayerSendTextMessage(cid, config.errorMsgType, "The "..itemCostName.." needs to be brand new.")
-												return false
-											end
-										elseif getItemInfo(cost).charges > 0 then
-											ogCostCount = costCount
-											costCount = item.type
-											if item.type < getItemInfo(cost).charges then
-												result.free(queryResult)
-												doPlayerSendTextMessage(cid, config.errorMsgType, "The "..itemCostName.." needs to be brand new.")
-												return false
-											end
-										end
-									else
-										doPlayerSendTextMessage(cid, config.errorMsgType, "You need to put the "..itemCostName.." in your ammunition slot.")
-										return false
-									end
-								end
-								local ownerTownID						
+				end
+
+				local ownerTownID						
 								if isPlayerOnline(getPlayerNameByGUID(owner)) then								
 									ownerTownID = getPlayerTown(getPlayerByGUID(owner))
 									setPlayerStorageValue(getPlayerByGUID(owner), config.offerLimitStor, (tonumber(getPlayerStorageValue(getPlayerByGUID(owner), config.offerLimitStor))-1))
@@ -707,31 +740,15 @@ function onSay(player, words, param)
 						else
 							doPlayerSendTextMessage(cid, config.errorMsgType, "You can not buy your own offer.")
 						end
-					else
-						doPlayerSendTextMessage(cid, config.errorMsgType, "You can buy only active offers.")
-					end
-				else
-					doPlayerSendTextMessage(cid, config.errorMsgType, "Please, insert only numbers.")
-				end
-			else
-				doPlayerSendTextMessage(cid, config.errorMsgType, "Please enter the offerID you want to buy.")
-			end		
+
+
+	
 		else
 			doPlayerSendTextMessage(cid, config.infoMsgType, config.helpMsg)
 		end
 	else
 		doPlayerSendTextMessage(cid, config.infoMsgType, config.helpMsg)
 	end	
-	return false
-end
-
-function getOfferID()
-	local queryResult = db.storeQuery("SELECT LAST_INSERT_ID()")
-	if (queryResult) then
-		local offerID = result.getNumber(queryResult, "LAST_INSERT_ID()")
-		result.free(queryResult)
-		return offerID
-	end
 	return false
 end
 

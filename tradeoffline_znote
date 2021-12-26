@@ -1,0 +1,222 @@
+-[[    Offline player to player item trader (Auction System)
+        File location: data/scripts/auction_system.lua
+        -- Originally by vDk, converted to TFS 1.3 Revscriptsys by Znote
+        Script version: 1.3z
+        -- TFS 1.3, downgraded to protocol 8.6, with working RevScriptSys:
+        -- https://github.com/nekiro/forgottenserver/tree/8.6-downgrade
+]]--
+local config = {
+    levelRequiredToAdd = 20,
+    maxOffersPerPlayer = 5,
+    SendOffersOnlyInPZ = true,
+    blocked_items = {2165, 2152, 2148, 2160, 2166, 2167, 2168, 2169, 2202, 2203, 2204, 2205, 2206, 2207, 2208, 2209, 2210, 2211, 2212, 2213, 2214, 2215, 2343, 2433, 2640, 6132, 6300, 6301, 9932, 9933}
+}
+
+local offer_talkAction = TalkAction("!offer")
+
+function offer_talkAction.onSay(player, words, param)
+    if param == '' then
+        player:sendTextMessage(MESSAGE_STATUS_CONSOLE_BLUE, "Command requires param.")
+        return true
+    end
+
+    -- https://github.com/otland/forgottenserver/commit/786325688119533db2f54b9b90914add97809a5c
+    local t = param:splitTrimmed(",")
+
+    -- ADD
+    if t[1] == "add" then
+        if not t[2] or not t[3] or not t[4] then
+            player:sendTextMessage(MESSAGE_STATUS_CONSOLE_BLUE, "Command requires more params.")
+            return true
+        end
+              
+        if not tonumber(t[3]) or not tonumber(t[4]) then
+            player:sendTextMessage(MESSAGE_STATUS_CONSOLE_BLUE, "You don't set valid price or items count.")
+            return true
+        end
+      
+        if string.len(t[3]) > 7 or string.len(t[4]) > 3 then
+            player:sendTextMessage(MESSAGE_STATUS_CONSOLE_BLUE, "This price or item count is too high.")
+            return true
+        end
+      
+        local itemType = ItemType(t[2]) -- item replacement (notice)
+        if itemType:getId() == 0 then
+            itemType = ItemType(tonumber(t[2]))
+            if not tonumber(t[2]) or itemType:getId() == 0 then
+                player:sendTextMessage(MESSAGE_STATUS_CONSOLE_BLUE, "Item wich such name does not exists.")
+                return true
+            end
+        end
+        if table.contains({   
+            1, 2, 3, 4, 5, 6, 7, 10, 11, 13, 14, 15, 19, 21, 26, 27, 28, 35, 43
+        }, itemType:getId()) then
+            return true
+        end
+      
+        if player:getLevel() < config.levelRequiredToAdd then
+            player:sendTextMessage(MESSAGE_STATUS_CONSOLE_BLUE, "You don't have required (" .. config.levelRequiredToAdd .. ") level.")
+            return true
+        end
+                      
+        if isInArray(config.blocked_items, itemType:getId()) then
+            player:sendTextMessage(MESSAGE_STATUS_CONSOLE_BLUE, "This item is blocked.")
+            return true
+        end
+      
+        if player:getItemCount(itemType:getId(), true) < tonumber(t[4]) then
+            player:sendTextMessage(MESSAGE_STATUS_CONSOLE_BLUE, "Sorry, you don't have this item(s).")
+            return true
+        end
+      
+        local check = db.storeQuery("SELECT `id` FROM `auction_system` WHERE `player` = " .. player:getGuid() .. ";")
+        if check ~= false then
+            if check:getRows(true) >= config.maxOffersPerPlayer then
+                player:sendTextMessage(MESSAGE_STATUS_CONSOLE_BLUE, "Sorry you can't add more offers (max. " .. config.maxOffersPerPlayer .. ")")
+                return true
+            end
+        end
+                      
+        if config.SendOffersOnlyInPZ then
+            if not Tile(player:getPosition()):hasFlag(TILESTATE_PROTECTIONZONE) then
+                player:sendTextMessage(MESSAGE_STATUS_CONSOLE_BLUE, "You must be in PZ area when you add offert to database.")
+                return true
+            end
+        end
+  
+        if iftonumber(t[4]) < 1 or tonumber(t[3]) < 1 then
+            player:sendTextMessage(MESSAGE_STATUS_CONSOLE_BLUE, "You have to type a number higher than 0.")
+            return true
+        end
+                      
+        local itemcount, costgp = math.floor(t[4]), math.floor(t[3])
+        player:removeItem(itemType:getId(), itemcount)
+        db.query("INSERT INTO `auction_system` (`player`, `item_name`, `item_id`, `count`, `cost`, `date`) VALUES (" .. player:getGuid() .. ", '" .. db.escapeString(itemType:getName()) .. "', " .. itemType:getId() .. ", " .. itemcount .. ", " .. costgp ..", " .. os.time() .. ")")
+        player:sendTextMessage(MESSAGE_INFO_DESCR, "You successfully add " .. itemcount .." " .. db.escapeString(itemType:getName()) .." for " .. costgp .. " gps to offerts database.")
+    end
+
+    -- BUY
+    if t[1] == "buy" then
+        if not tonumber(t[2]) then
+            player:sendTextMessage(MESSAGE_STATUS_CONSOLE_BLUE, "Wrong ID.")
+            return true
+        end
+      
+        local buy = db.storeQuery("SELECT * FROM `auction_system` WHERE `id` = " .. (tonumber(t[2])) .. ";")
+        if buy ~= false then
+            if player:getMoney() < result.getDataInt(buy, "cost") then
+                player:sendTextMessage(MESSAGE_STATUS_CONSOLE_BLUE, "You don't have enoguh GP.")
+                result.free(buy)
+                return true
+            end
+
+            local itemPlayer = result.getDataInt(buy, "player")
+            if player:getGuid() == itemPlayer then
+                player:sendTextMessage(MESSAGE_STATUS_CONSOLE_BLUE, "Sorry, you can't buy your own items.")
+                result.free(buy)
+                return true
+            end
+
+            -- Retrieve itemType
+            local itemType = ItemType(result.getDataInt(buy, "item_id"))
+            if itemType:getId() == 0 then
+                player:sendTextMessage(MESSAGE_STATUS_CONSOLE_BLUE, "Failed to load itemType of buy offer.")
+                return true
+            end
+           
+            local itemCount = result.getDataInt(buy, "count")
+            local itemWeight = itemType:getWeight(itemCount)
+            if player:getFreeCapacity() < itemWeight then
+                player:sendTextMessage(MESSAGE_STATUS_CONSOLE_BLUE, "You try to buy " .. itemCount .. " " .. db.escapeString(itemType:getName()) .. ". It weight(s) " .. itemWeight .. " cap oz. and you have only " .. player:getFreeCapacity() .. " oz. free capacity. Put some items to depot and try again.")
+                result.free(buy)
+                return true
+            end
+                  
+            if itemType:isStackable() then
+                player:addItem(itemType:getId(), itemCount)
+            else
+                for i = 1, itemCount do
+                    player:addItem(itemType:getId(), 1)
+                end
+            end
+          
+            local itemCost = result.getDataInt(buy, "cost")
+            player:removeMoney(itemCost)
+            db.query("DELETE FROM `auction_system` WHERE `id` = " .. tonumber(t[2]) .. ";")
+            player:sendTextMessage(MESSAGE_INFO_DESCR, "You bought " .. itemCount .. " ".. db.escapeString(itemType:getName()) .. " for " .. itemCost .. " gps!")
+            db.query("UPDATE `players` SET `auction_balance` = `auction_balance` + " .. itemCost .. " WHERE `id` = " .. itemPlayer .. ";")
+            result.free(buy)
+        else
+            player:sendTextMessage(MESSAGE_STATUS_CONSOLE_BLUE, "Wrong ID.")
+        end
+    end
+
+    -- REMOVE
+    if t[1] == "remove" then
+        if not tonumber(t[2]) then
+            player:sendTextMessage(MESSAGE_STATUS_CONSOLE_BLUE, "Wrong ID.")
+            return true
+        end
+       
+        if config.SendOffersOnlyInPZ then   
+            if not Tile(player:getPosition()):hasFlag(TILESTATE_PROTECTIONZONE) then
+                player:sendTextMessage(MESSAGE_STATUS_CONSOLE_BLUE, "You must be in PZ area when you remove offerts from database.")
+                return true
+            end
+        end
+                          
+        local delete = db.storeQuery("SELECT * FROM `auction_system` WHERE `id` = " .. tonumber(t[2]) .. ";")       
+        if delete ~= false then
+            if player:getGuid() == result.getDataInt(delete, "player") then
+
+                -- Retrieve itemType
+                local itemType = ItemType(result.getDataInt(delete, "item_id"))
+                if itemType:getId() == 0 then
+                    player:sendTextMessage(MESSAGE_STATUS_CONSOLE_BLUE, "Failed to load itemType of deleted offer.")
+                    return true
+                end
+               
+                local itemCount = result.getDataInt(delete, "count")
+
+                db.query("DELETE FROM `auction_system` WHERE `id` = " .. tonumber(t[2]) .. ";")
+               
+                if itemType:isStackable() then
+                    player:addItem(itemType:getId(), itemCount)
+                else
+                    for i = 1, itemCount do
+                        player:addItem(itemType:getId(), 1)
+                    end
+                end
+               
+                player:sendTextMessage(MESSAGE_INFO_DESCR, "Your offert has been deleted from offerts database.")
+            else
+                player:sendTextMessage(MESSAGE_STATUS_CONSOLE_BLUE, "This is not your offert!")
+            end
+            result.free(delete)
+        else
+            player:sendTextMessage(MESSAGE_STATUS_CONSOLE_BLUE, "Wrong ID.")
+        end
+    end
+
+    -- todo
+    if t[1] == "withdraw" then
+        local balance = db.storeQuery("SELECT `auction_balance` FROM `players` WHERE `id` = " .. player:getGuid() .. ";")
+        if balance ~= false then
+
+            local auction_balance = result.getDataInt(balance, "auction_balance")
+            if auction_balance < 1 then
+                player:sendTextMessage(MESSAGE_INFO_DESCR, "You don't have money on your auction balance.")
+                result.free(balance)
+                return true
+            end
+
+            player:sendTextMessage(MESSAGE_INFO_DESCR, "You got " .. auction_balance .. " gps from auction system!")
+            player:addMoney(auction_balance)
+            db.query("UPDATE `players` SET `auction_balance` = '0' WHERE `id` = " .. player:getGuid() .. ";")
+            result.free(balance)
+        else
+            player:sendTextMessage(MESSAGE_INFO_DESCR, "You don't have money on your auction balance.")
+        end
+    end
+    return true
+end

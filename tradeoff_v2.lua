@@ -1,5 +1,43 @@
 -- Trade Offline 2.0 by WooX --
 
+-- !tradeoff add, ValueInGolds      / ex: !tradeoff add, 5000
+-- !tradeoff add, ItemTrade         / ex: !tradeoff add, Golden Legs
+-- !tradeoff add, ItemTrade, Count  / ex: !tradeoff add, Event Coins, 10
+-- !tradeoff buy, AuctionID         / ex: !tradeoff buy, 1943
+-- !tradeoff remove, AuctionID      / ex: !tradeoff remove, 1943
+-- !tradeoff info, AuctionID        / ex: !tradeoff info, 1943
+
+--[[
+-- TRADE OFF
+CREATE TABLE `trade_off_offers` (
+  `id` int unsigned NOT NULL AUTO_INCREMENT,
+  `player_id` int NOT NULL,
+  `type` tinyint NOT NULL DEFAULT '0',
+  `item_id` smallint unsigned NOT NULL,
+  `item_count` smallint unsigned NOT NULL DEFAULT '1',
+  `item_charges` int unsigned NOT NULL DEFAULT '0',
+  `item_duration` int unsigned NOT NULL DEFAULT '0',
+  `item_name` varchar(255) NOT NULL,
+  `item_trade` tinyint NOT NULL DEFAULT '0',
+  `cost` bigint unsigned NOT NULL,
+  `cost_count` int unsigned NOT NULL DEFAULT '1',
+  `date` bigint unsigned NOT NULL,
+  PRIMARY KEY (`id`),
+  FOREIGN KEY (`player_id`) REFERENCES `players`(`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARACTER SET=utf8;
+
+-- TRADE OFF
+CREATE TABLE `trade_off_container_items` (
+  `offer_id` int unsigned NOT NULL,
+  `item_id` smallint unsigned NOT NULL,
+  `item_charges` int unsigned NOT NULL DEFAULT '0',
+  `item_duration` int unsigned NOT NULL DEFAULT '0', 
+  `count` smallint unsigned NOT NULL DEFAULT '1',
+  FOREIGN KEY (`offer_id`) REFERENCES `trade_off_offers`(`id`) ON DELETE CASCADE,
+  KEY `offer_id`(`offer_id`)
+) ENGINE=InnoDB DEFAULT CHARACTER SET=utf8;
+]]--
+
 local config = {
 	aguardarStorage = 86421,
 	levelParaAddOferta = 20,
@@ -15,21 +53,17 @@ local config = {
 	infoMsgType = MESSAGE_STATUS_CONSOLE_BLUE,
 	errorMsgType = MESSAGE_STATUS_CONSOLE_RED,
 	successMsgType = MESSAGE_INFO_DESCR,
-	helpMsg = "Enter the parameters (add, remove, active, buy, info).",
-}
 
-local config = {
 	valuePerOffer = 500,
-	blockedItems = {2165, 2152, 2148, 2160, 2166, 2167, 2168, 2169, 2202, 2203, 2204, 2205, 2206, 2207, 2208, 2209, 2210, 2211, 2212, 2213, 2214, 2215, 2343, 2433, 2640, 6132, 6300, 6301, 9932, 9933}
+	blockedItems = {
+		9933,
+		2167 -- energy ring
+	}
 }
 
 local function retornarItemsdoContainer(uid)
 	local container = Container(uid)
 	if not container then
-		return false
-	end
-
-	if not container:isContainer() then
 		return false
 	end
 
@@ -44,38 +78,34 @@ local function retornarItemsdoContainer(uid)
 		-- Verifique se há recipientes com itens dentro
 		local containerDentroDoContainer = Container(itemDentroDoContainer)
 		if containerDentroDoContainer then
-			if containerDentroDoContainer:isContainer() then
-				local containerComItemDentroDoContainer = containerDentroDoContainer:getItem(0)
-				if containerComItemDentroDoContainer then
-					return false
-				end
+			local containerComItemDentroDoContainer = containerDentroDoContainer:getItem(0)
+			if containerComItemDentroDoContainer then
+				return false
 			end
 		end
 
-		local cargasDoItemDentroDoContainer = "DEFAULT"
-		local duracaoDoItemDentroDoContainer = "DEFAULT"
+		local cargasDoItemDentroDoContainer = 0
+		local duracaoDoItemDentroDoContainer = 0
 
-		-- testar item:hasShowCharges()
-		-- testar item:hasAttribute(ITEM_ATTRIBUTE_CHARGES)
-		-- testar local charges = item:getCharges()
-		local cargas = itemDentroDoContainer:getAttribute(ITEM_ATTRIBUTE_CHARGES)
-		if cargas then
-			if cargas > 0 then
-				cargasDoItemDentroDoContainer = itemDentroDoContainer:getAttribute(ITEM_ATTRIBUTE_CHARGES)
+		local charges = itemDentroDoContainer:getCharges()
+		if charges then
+			if charges > 0 then
+				cargasDoItemDentroDoContainer = charges
 			end
 		end
 
-		-- testar item:hasShowDuration
-		-- testar item:hasAttribute(ITEM_ATTRIBUTE_DURATION)
-		-- testar local duration = item:getDuration() / 1000
-		local duracao = itemDentroDoContainer:getAttribute(ITEM_ATTRIBUTE_DURATION)
-		if duracao then
-			if duracao > 0 then
-				duracaoDoItemDentroDoContainer = itemDentroDoContainer:getAttribute(ITEM_ATTRIBUTE_DURATION)
+		local duration = itemDentroDoContainer:getDuration()
+		if duration then
+			if duration > 0 then
+				duracaoDoItemDentroDoContainer = duration
 			end
 		end
 
-		local quantidadeDoItemDentroDoContainer = itemDentroDoContainer:isStackable() and itemDentroDoContainer:getCount() or 1
+		if table.contains(config.blockedItems, itemDentroDoContainer:getId()) then
+			return false
+		end
+
+		local quantidadeDoItemDentroDoContainer = itemDentroDoContainer:getCount()
 
 		local itemDentroDoContainerId = itemDentroDoContainer:getId()
 		if not itemDentroDoContainerId then
@@ -84,12 +114,51 @@ local function retornarItemsdoContainer(uid)
 
 		itemsdoContainer[i + 1] = {id = itemDentroDoContainerId, count = quantidadeDoItemDentroDoContainer, charges = cargasDoItemDentroDoContainer, duration = duracaoDoItemDentroDoContainer}
 	end
-	return #itemsdoContainer > 0 and itemsdoContainer or false
+	return itemsdoContainer and itemsdoContainer or false
+end
+
+local function durationTimeString(durationTime)
+	if not durationTime then
+		return false
+	end
+
+	local duration = durationTime / 1000
+	if duration > 0 then
+		local frase = 'that will expire in '
+		if duration >= 86400 then
+			local days = math.floor(duration / 86400)
+			local hours = math.floor((duration % 86400) / 3600)
+			frase = frase .. days .. ' day' ..(days ~= 1 and 's' or '')
+			if hours > 0 then
+				frase = frase .. ' and '.. hours .. ' hour' ..(hours ~= 1 and 's' or '')
+			end
+		elseif duration >= 3600 then
+			local hours = math.floor(duration / 3600)
+			local minutes = math.floor((duration % 3600) / 60)
+			frase = frase .. hours .. ' hour' ..(hours ~= 1 and 's' or '')
+			if minutes > 0 then
+				frase = frase .. ' and '.. minutes .. ' minute' ..(minutes ~= 1 and 's' or '')
+			end
+		elseif duration >= 60 then
+			local minutes = math.floor(duration / 60)
+			local seconds = duration % 60
+			frase = frase .. minutes .. ' minute' ..(minutes ~= 1 and 's' or '')
+			if seconds > 0 then
+				frase = frase .. ' and '.. seconds .. ' second' ..(seconds ~= 1 and 's' or '')
+			end
+		else
+			frase = frase .. duration .. ' second' ..(duration ~= 1 and 's' or '')
+		end
+		
+		return frase
+	end
+	
+	return false
 end
 
 function onSay(player, words, param)
 	if param == '' then
-		player:sendTextMessage(config.errorMsgType, "Command param required.")
+		player:sendTextMessage(config.errorMsgType, "[TRADE OFF] Command param required.")
 		player:getPosition():sendMagicEffect(CONST_ME_POFF)
 		return false
 	end
@@ -97,13 +166,13 @@ function onSay(player, words, param)
 	local posicao = player:getPosition()
 	local tile = Tile(posicao)
 	if not tile then
-		player:sendTextMessage(config.errorMsgType, "Invalid player position.")
+		player:sendTextMessage(config.errorMsgType, "[TRADE OFF] Invalid player position.")
 		player:getPosition():sendMagicEffect(CONST_ME_POFF)
 		return false	
 	end
 
 	if not tile:hasFlag(TILESTATE_PROTECTIONZONE) then
-		player:sendTextMessage(config.errorMsgType, "You must be in the protection zone to use these commands.")
+		player:sendTextMessage(config.errorMsgType, "[TRADE OFF] You must be in the protection zone to use these commands.")
 		player:getPosition():sendMagicEffect(CONST_ME_POFF)
 		return false
 	end
@@ -120,18 +189,32 @@ function onSay(player, words, param)
 
 	player:setStorageValue(config.aguardarStorage, 10 + os.time())
 
+	if not table.contains({"add", "remove", "active", "info", "buy"}, palavra[1]) then
+		player:sendTextMessage(config.errorMsgType, "[TRADE OFF] Invalid parameters. Trade offline commands:" .. "\n"
+			.. "!tradeoff add, ValueInGolds" .. "\n"
+			.. "!tradeoff add, ItemTrade" .. "\n"
+			.. "!tradeoff add, ItemTrade, Count" .. "\n"
+			.. "!tradeoff remove, AuctionID" .. "\n"
+			.. "!tradeoff active" .. "\n"
+			.. "!tradeoff info, AuctionID" .. "\n"
+			.. "!!tradeoff buy, AuctionID")
+		player:getPosition():sendMagicEffect(CONST_ME_POFF)	
+		player:getPosition():sendMagicEffect(CONST_ME_POFF)		
+		return false
+	end
+
 	-- !tradeoff add
 	if palavra[1] == "add" then
 
-		if player:getLevel() < config.levelParaAddOferta then
-			player:sendTextMessage(config.errorMsgType, "You don't have required level ".. config.levelParaAddOferta .." to add offer.")
+		if player:getLevel() < config.levelParaAddOferta and not player:getGroup():getAccess() then
+			player:sendTextMessage(config.errorMsgType, "[TRADE OFF] You don't have required level ".. config.levelParaAddOferta .." to add offer.")
 			player:getPosition():sendMagicEffect(CONST_ME_POFF)
 			return false
 		end
 
 		local ofertas = 0
 		local playerId = player:getGuid()
-		local pesquisaBancoDeDados = db.storeQuery("SELECT `id` FROM `tradeoff` WHERE `player_id` = " .. playerId)
+		local pesquisaBancoDeDados = db.storeQuery("SELECT `id` FROM `trade_off_offers` WHERE `player_id` = " .. playerId)
 		if pesquisaBancoDeDados ~= false then
 			repeat
 				ofertas = ofertas + 1
@@ -140,67 +223,74 @@ function onSay(player, words, param)
 		end
 
 		if ofertas >= config.maxOfertasPorPlayer then
-			player:sendTextMessage(config.errorMsgType, "Sorry you can't add more offers (max. " .. config.maxOfertasPorPlayer .. ")")
+			player:sendTextMessage(config.errorMsgType, "[TRADE OFF] Sorry you can't add more offers (max. " .. config.maxOfertasPorPlayer .. ")")
 			player:getPosition():sendMagicEffect(CONST_ME_POFF)
 			return false
 		end
 
 		if not palavra[2] then
-			player:sendTextMessage(config.errorMsgType, "Please enter the value of the offer or the item you want to buy. Ex: !tradeoff add, sellForValue, !tradeoff add, sellForItem or !tradeoff add, sellForItem, sellForCountItem")
+			player:sendTextMessage(config.errorMsgType, "[TRADE OFF] Please enter the value of the offer or the item you want to buy. Ex: !tradeoff add, sellForValue, !tradeoff add, sellForItem or !tradeoff add, sellForItem, sellForCountItem")
 			player:getPosition():sendMagicEffect(CONST_ME_POFF)
 			return false
 		end
 
-		local item = player:getSlotItem(CONST_SLOT_AMMO)
-		local itemOfertado = ItemType(item.uid)
+		local itemOfertado = player:getSlotItem(CONST_SLOT_AMMO)
 		if not itemOfertado then
-			player:sendTextMessage(config.errorMsgType, "To create an offer the item must be in the ammunition slot.")
+			player:sendTextMessage(config.errorMsgType, "[TRADE OFF] To create an offer the item must be in the ammunition slot.")
 			player:getPosition():sendMagicEffect(CONST_ME_POFF)
 			return false
 		end
 
 		local itemOfertadoId = itemOfertado:getId()
 		if itemOfertadoId == 0 then
-			player:sendTextMessage(config.errorMsgType, "To create an offer the item must be in the ammunition slot.")
+			player:sendTextMessage(config.errorMsgType, "[TRADE OFF] To create an offer the item must be in the ammunition slot.")
 			player:getPosition():sendMagicEffect(CONST_ME_POFF)
 			return false
 		end
 
-		if not itemOfertado:isPickupable() then
-			player:sendTextMessage(config.errorMsgType, "You cannot add this item type as an offer.")
+		local itemOfertadoItemType = ItemType(itemOfertadoId)
+
+		if not itemOfertadoItemType:isPickupable() then
+			player:sendTextMessage(config.errorMsgType, "[TRADE OFF] You cannot add this item type as an offer.")
 			player:getPosition():sendMagicEffect(CONST_ME_POFF)
 			return false
 		end
 
-		if itemOfertado:isCorpse() then
-			player:sendTextMessage(config.errorMsgType, "You cannot add a corpse as an offer.")
+		if itemOfertadoItemType:isCorpse() then
+			player:sendTextMessage(config.errorMsgType, "[TRADE OFF] You cannot add a corpse as an offer.")
+			player:getPosition():sendMagicEffect(CONST_ME_POFF)
+			return false
+		end
+
+		if table.contains(config.blockedItems, itemOfertadoId) then
+			player:sendTextMessage(config.errorMsgType, "[TRADE OFF] This item is blocked.")
 			player:getPosition():sendMagicEffect(CONST_ME_POFF)
 			return false
 		end
 
 		local mensagemPagamento = ""
-		local itemComoPagamento = "DEFAULT"
-		local addPagamento = "DEFAULT"
-		local quantidadeDoItemComoPagamento = "DEFAULT"
+		local itemComoPagamento = 0
+		local addPagamento
+		local quantidadeDoItemComoPagamento = 1
 
 		-- !tradeoff add, valor
 		if isNumber(palavra[2]) then
 
 			if table.contains(config.goldItems, itemOfertadoId) then
-				player:sendTextMessage(config.errorMsgType, "You can't trade gold for gold.")
+				player:sendTextMessage(config.errorMsgType, "[TRADE OFF] You can't trade gold for gold.")
 				player:getPosition():sendMagicEffect(CONST_ME_POFF)
 				return false
 			end
 
 			local dinheiroComoPagamento = tonumber(palavra[2])
 			if dinheiroComoPagamento < 1 then
-				player:sendTextMessage(config.errorMsgType, "The offer must have a value greater than 0.")
+				player:sendTextMessage(config.errorMsgType, "[TRADE OFF] The offer must have a value greater than 0.")
 				player:getPosition():sendMagicEffect(CONST_ME_POFF)
 				return false
 			end			
 
 			if dinheiroComoPagamento > config.precoLimite then
-				player:sendTextMessage(config.errorMsgType, "The offer may not exceed the value of "..config.precoLimite.." gold coins.")
+				player:sendTextMessage(config.errorMsgType, "[TRADE OFF] The offer may not exceed the value of "..config.precoLimite.." gold coins.")
 				player:getPosition():sendMagicEffect(CONST_ME_POFF)
 				return false
 			end
@@ -210,55 +300,67 @@ function onSay(player, words, param)
 
 		else -- !tradeoff add, item
 
-			local itemIdComoPagamento = ItemType(palavra[2]):getId()
-
+			local itemComoPagamentoItemType = ItemType(palavra[2])
+			local itemIdComoPagamento = itemComoPagamentoItemType:getId()
 			if not itemIdComoPagamento then
-				player:sendTextMessage(config.errorMsgType, "This item does not exist, check if it's name is correct.")
+				player:sendTextMessage(config.errorMsgType, "[TRADE OFF] This item does not exist, check if it's name is correct.")
+				player:getPosition():sendMagicEffect(CONST_ME_POFF)
+				return false
+			end
+
+			if itemIdComoPagamento == 0 then
+				player:sendTextMessage(config.errorMsgType, "[TRADE OFF] This item does not exist, check if it's name is correct.")
 				player:getPosition():sendMagicEffect(CONST_ME_POFF)
 				return false
 			end
 
 			if table.contains(config.goldItems, itemIdComoPagamento) then
-				player:sendTextMessage(config.errorMsgType, "To sell for gold insert only the amount instead of item name.")
+				player:sendTextMessage(config.errorMsgType, "[TRADE OFF] To sell for gold insert only the amount instead of item name.")
+				player:getPosition():sendMagicEffect(CONST_ME_POFF)
+				return false
+			end
+			
+			if table.contains(config.blockedItems, itemIdComoPagamento) then
+				player:sendTextMessage(config.errorMsgType, "[TRADE OFF] This payment item is blocked.")
 				player:getPosition():sendMagicEffect(CONST_ME_POFF)
 				return false
 			end
 
 			if itemIdComoPagamento == itemOfertadoId then
-				player:sendTextMessage(config.errorMsgType, "You can not trade equal items.")
+				player:sendTextMessage(config.errorMsgType, "[TRADE OFF] You can not trade equal items.")
 				player:getPosition():sendMagicEffect(CONST_ME_POFF)
 				return false
 			end
 
-			if itemIdComoPagamento:isCorpse() then
-				player:sendTextMessage(config.errorMsgType, "You can not buy a corpse.")
+			if itemComoPagamentoItemType:isCorpse() then
+				player:sendTextMessage(config.errorMsgType, "[TRADE OFF] You can't ask for a corpse as payment")
 				player:getPosition():sendMagicEffect(CONST_ME_POFF)
 				return false
 			end
 
-			if not itemIdComoPagamento:isMoveable() or not itemIdComoPagamento:isPickupable() then
-				player:sendTextMessage(config.errorMsgType, "You cannot request this type of payment item.")
+			if not itemComoPagamentoItemType:isMovable() or not itemComoPagamentoItemType:isPickupable() then
+				player:sendTextMessage(config.errorMsgType, "[TRADE OFF] You cannot request this type of payment item.")
 				player:getPosition():sendMagicEffect(CONST_ME_POFF)
 				return false
 			end
 
 			-- !tradeoff add, item, count
 			if palavra[3] then
-				if not itemIdComoPagamento:isStackable() then
-					player:sendTextMessage(config.errorMsgType, "You can only select the quantity with stackable items.")
+				if not itemComoPagamentoItemType:isStackable() then
+					player:sendTextMessage(config.errorMsgType, "[TRADE OFF] You can only select the quantity with stackable items.")
 					player:getPosition():sendMagicEffect(CONST_ME_POFF)
 					return false
 				end
 
 				if not isNumber(palavra[3]) then
-					player:sendTextMessage(config.errorMsgType, "You can only receive from 1 to 100 stackable items.")
+					player:sendTextMessage(config.errorMsgType, "[TRADE OFF] You can only receive from 1 to 100 stackable items.")
 					player:getPosition():sendMagicEffect(CONST_ME_POFF)
 					return false
 				end	
 
 				quantidadeDoItemComoPagamento = tonumber(palavra[3])
 				if quantidadeDoItemComoPagamento < 1 or quantidadeDoItemComoPagamento > 100 then
-					player:sendTextMessage(config.errorMsgType, "You can only receive from 1 to 100 stackable items.")
+					player:sendTextMessage(config.errorMsgType, "[TRADE OFF] You can only receive from 1 to 100 stackable items.")
 					player:getPosition():sendMagicEffect(CONST_ME_POFF)
 					return false
 				end
@@ -267,45 +369,61 @@ function onSay(player, words, param)
 			itemComoPagamento = 1
 			addPagamento = itemIdComoPagamento
 
-			local artigoDoItemComoPagamento = (palavra[3] and quantidadeDoItemComoPagamento or (itemIdComoPagamento:getArticle() ~= "" and itemIdComoPagamento:getArticle() or ""))
-			local nomeDoItemComoPagamento = (palavra[3] and quantidadeDoItemComoPagamento and itemIdComoPagamento:getPluralName() or itemIdComoPagamento:getName())
+			local artigoDoItemComoPagamento = (palavra[3] and quantidadeDoItemComoPagamento or (itemComoPagamentoItemType:getArticle() ~= "" and itemComoPagamentoItemType:getArticle() or ""))
+			local nomeDoItemComoPagamento = (palavra[3] and quantidadeDoItemComoPagamento and itemComoPagamentoItemType:getPluralName() or itemComoPagamentoItemType:getName())
 			mensagemPagamento = "for ".. artigoDoItemComoPagamento .. " ".. nomeDoItemComoPagamento .."."
 		end
 
-		local quantidadeDoItemOfertado = itemOfertado:isStackable() and itemOfertado:getCount() or 1
-		local nomeDoItemOfertado = (quantidadeDoItemOfertado > 1 and itemOfertado:getPluralName() or itemOfertado:getName())
+		local quantidadeDoItemOfertado = itemOfertadoItemType:isStackable() and itemOfertado:getCount() or 1
+		local nomeDoItemOfertado = (quantidadeDoItemOfertado > 1 and itemOfertadoItemType:getPluralName() or itemOfertadoItemType:getName())
 
-		local itemsDoContainer = retornarItemsdoContainer(item.uid)
+		local itemsDoContainer = {}
+		local itemOfertadoIsContainer = itemOfertadoItemType:isContainer()
+		if itemOfertadoIsContainer then
+			itemsDoContainer = retornarItemsdoContainer(itemOfertado.uid)
+			if not itemsDoContainer then	
+				player:sendTextMessage(config.errorMsgType, "[TRADE OFF] You cannot use blocked items inside containers and you cannot use container with items inside container.")
+				player:getPosition():sendMagicEffect(CONST_ME_POFF)
+				return false
+			end
+		end
+
 		local tipoDeOferta = 1 -- no container
-		if itemsDoContainer then
+		if #itemsDoContainer > 0 then
 			tipoDeOferta = 2 -- container
 		end
 
-		local cargasDoItemOfertado = "DEFAULT"
-		local duracaoDoItemOfertado = "DEFAULT"
+		local cargasDoItemOfertado = 0
+		local duracaoDoItemOfertado = 0
 
-		local cargas = itemOfertado:getAttribute(ITEM_ATTRIBUTE_CHARGES)
-		if cargas then
-			if cargas > 0 then
-				cargasDoItemOfertado = itemOfertado:getAttribute(ITEM_ATTRIBUTE_CHARGES)
+		local charges = itemOfertado:getCharges()
+		if charges then
+			if charges > 0 then
+				cargasDoItemOfertado = charges
 			end
 		end
 
-		local duracao = itemOfertado:getAttribute(ITEM_ATTRIBUTE_DURATION)
-		if duracao then
-			if duracao > 0 then
-				duracaoDoItemOfertado = itemOfertado:getAttribute(ITEM_ATTRIBUTE_DURATION)
+		local duration = itemOfertado:getDuration()
+		if duration then
+			if duration > 0 then
+				duracaoDoItemOfertado = duration
 			end
+		end
+
+		if player:getMoney() < config.valuePerOffer then
+			player:sendTextMessage(config.errorMsgType, "[TRADE OFF] You need ".. config.valuePerOffer .." gold coins to add an offer in trade offline.")
+			player:getPosition():sendMagicEffect(CONST_ME_POFF)
+			return false
 		end
 
 		local pesquisaBancoDeDados = "INSERT INTO trade_off_offers (id, player_id, type, item_id, item_count, item_charges, item_duration, item_name, item_trade, cost, cost_count, date) VALUES (NULL, "
-			.. playerId ..", ".. tipoDeOferta ..", ".. itemOfertadoId ..", ".. quantidadeDoItemOfertado ..", ".. cargasDoItemOfertado ..", ".. duracaoDoItemOfertado ..", ".. nomeDoItemOfertado ..", ".. itemComoPagamento ..", " 
+			.. playerId ..", ".. tipoDeOferta ..", ".. itemOfertadoId ..", ".. quantidadeDoItemOfertado ..", ".. cargasDoItemOfertado ..", ".. duracaoDoItemOfertado ..", ".. db.escapeString(nomeDoItemOfertado) ..", ".. itemComoPagamento ..", " 
 			.. addPagamento ..", ".. quantidadeDoItemComoPagamento ..", ".. os.time() ..")"
 
 		local mensagemContainer = ""
 		if tipoDeOferta == 2 then -- Container
-			if not itemsDoContainer then
-				player:sendTextMessage(config.errorMsgType, "You can not have containers with items inside the main container.")
+			if #itemsDoContainer == 0 then
+				player:sendTextMessage(config.errorMsgType, "[TRADE OFF] You can not have containers with items inside the main container.")
 				player:getPosition():sendMagicEffect(CONST_ME_POFF)
 				return false
 			end
@@ -322,24 +440,25 @@ function onSay(player, words, param)
 			db.query(pesquisaBancoDeDados)
 		end
 
-		local artigoDoItemOfertado = (quantidadeDoItemOfertado > 1 and quantidadeDoItemOfertado or (itemOfertado:getArticle() ~= "" and itemOfertado:getArticle() or ""))
+		local artigoDoItemOfertado = (quantidadeDoItemOfertado > 1 and quantidadeDoItemOfertado or (itemOfertado:getArticle() ~= "" and (itemOfertado:getArticle().. " ") or ""))
 
-		player:sendTextMessage(config.successMsgType, "You announced ".. artigoDoItemOfertado .. " ".. nomeDoItemOfertado .."".. mensagemContainer .." "
+		player:sendTextMessage(config.successMsgType, "[TRADE OFF] You announced ".. artigoDoItemOfertado .. "".. nomeDoItemOfertado .."".. mensagemContainer .." "
 		.. mensagemPagamento .." Check out the offer id on the website.")
 
-		itemOfertado:remove(1)
+		player:removeTotalMoney(config.valuePerOffer)
+		itemOfertado:remove()
 
 	-- !tradeoff remove
 	elseif palavra[1] == "remove" then
 		if not palavra[2] then
-			player:sendTextMessage(config.errorMsgType, "Please enter the offerID you want to remove.")
+			player:sendTextMessage(config.errorMsgType, "[TRADE OFF] Please enter the offerID you want to remove.")
 			player:getPosition():sendMagicEffect(CONST_ME_POFF)
 			return false
 		end	
 		
 		-- !tradeoff remove, offerID
 		if not isNumber(palavra[2]) then
-			player:sendTextMessage(config.errorMsgType, "Please, insert only numbers.")
+			player:sendTextMessage(config.errorMsgType, "[TRADE OFF] Please, insert only numbers.")
 			player:getPosition():sendMagicEffect(CONST_ME_POFF)
 			return false
 		end
@@ -347,7 +466,7 @@ function onSay(player, words, param)
 		local ofertaID = tonumber(palavra[2])
 		local ofertaBancoDeDados = db.storeQuery("SELECT * FROM trade_off_offers WHERE id = ".. ofertaID)
 		if not ofertaBancoDeDados then
-			player:sendTextMessage(config.errorMsgType, "Please, insert a valid offer ID.")
+			player:sendTextMessage(config.errorMsgType, "[TRADE OFF] Please, insert a valid offer ID.")
 			player:getPosition():sendMagicEffect(CONST_ME_POFF)
 			return false
 		end
@@ -356,22 +475,26 @@ function onSay(player, words, param)
 		local playerId = player:getGuid()
 
 		if playerId ~= playerIdBancoDeDados then
-			player:sendTextMessage(config.errorMsgType, "You can not remove someone else's offer.")
+			player:sendTextMessage(config.errorMsgType, "[TRADE OFF] You can not remove someone else's offer.")
 			player:getPosition():sendMagicEffect(CONST_ME_POFF)
 			return false
 		end
 
 		local parcel = Game.createItem(ITEM_PARCEL)
-		local itemID = result.getNumber(ofertaBancoDeDados, "item_id")
-		local cidadeId = Town(player:getTown():getId())	
+		local cidadeId = player:getTown():getId()	
+
 		local depot = player:getDepotChest(cidadeId, true)
 		if not depot then
-			player:sendTextMessage(config.errorMsgType, "The city you live in has no depot.")
+			player:sendTextMessage(config.errorMsgType, "[TRADE OFF] The city you live in has no depot.")
 			player:getPosition():sendMagicEffect(CONST_ME_POFF)
 			return false
 		end
 
-		if ItemType(itemID):isContainer() then
+		local itemID = result.getNumber(ofertaBancoDeDados, "item_id")
+
+		local itemRemovidoItemType = ItemType(itemID)
+		local itemRemovidoIsContainer = itemRemovidoItemType:isContainer()
+		if itemRemovidoIsContainer then
 			local container = Game.createItem(itemID)
 			local selecionarItensDentroDoContainer = db.storeQuery("SELECT * FROM trade_off_container_items WHERE offer_id = ".. ofertaID)
 			if selecionarItensDentroDoContainer ~= false then
@@ -392,7 +515,7 @@ function onSay(player, words, param)
 						itemDentroDoContainer = Game.createItem(idDoItemDentroDoContainer, quantidadeDoItemDentroDoContainer)
 					end
 
-					container:addItemEx(Item(itemDentroDoContainer))
+					container:addItemEx(itemDentroDoContainer)
 
 				until not result.next(selecionarItensDentroDoContainer)
 				result.free(selecionarItensDentroDoContainer)
@@ -400,7 +523,7 @@ function onSay(player, words, param)
 				db.query("DELETE FROM trade_off_container_items WHERE offer_id = ".. ofertaID)
 			end
 
-			parcel:addItemEx(Item(container))
+			parcel:addItemEx(container)
 
 		else
 			local quantidadeDoItem = result.getNumber(ofertaBancoDeDados, "item_count")
@@ -413,29 +536,30 @@ function onSay(player, words, param)
 				item:setAttribute(ITEM_ATTRIBUTE_DURATION, duracaoDoItem)
 			elseif cargasDoItem > 0 then
 				item = Game.createItem(itemID)
-				item:setAttribute(ITEM_ATTRIBUTE_DURATION, cargasDoItem)
+				item:setAttribute(ITEM_ATTRIBUTE_CHARGES, cargasDoItem)
 			else
 				item = Game.createItem(itemID, quantidadeDoItem)
 			end
 
-			parcel:addItemEx(Item(item))
+			parcel:addItemEx(item)
 		end
 
 		result.free(ofertaBancoDeDados)
 		db.query("DELETE FROM trade_off_offers WHERE id = ".. ofertaID)
 
-		local cidadeNome = cidadeId:getName()
+		local cidadeNome = Town(cidadeId):getName()
 		local carta = Game.createItem(2598)
-		carta:setAttribute(ITEM_ATTRIBUTE_TEXT, "You canceled your offer with ID: ".. ofertaID ..".")
-		parcel:addItemEx(Item(carta))
+		carta:setAttribute(ITEM_ATTRIBUTE_TEXT, "[TRADE OFF] You canceled your offer with ID: ".. ofertaID ..".")
+		parcel:addItemEx(carta)
 		depot:addItemEx(parcel)
 
-		player:sendTextMessage(config.successMsgType, "You canceled your offer with ID: ".. ofertaID ..", the respective offer items were sent to ".. cidadeNome .." depot.")
+		player:sendTextMessage(config.successMsgType, "[TRADE OFF] You canceled your offer with ID: ".. ofertaID ..", the respective offer items were sent to ".. cidadeNome .." depot.")
 
 		return false
 
 	-- !tradeoff active
 	elseif palavra[1] == "active" then
+
 		local playerId = player:getGuid()
 		local selecionarOfertasNoBancoDeDados = db.storeQuery("SELECT * FROM trade_off_offers WHERE player_id = ".. playerId)
 		if selecionarOfertasNoBancoDeDados ~= false then
@@ -446,13 +570,13 @@ function onSay(player, words, param)
 					mensagemOfertas = mensagemOfertas .. ofertaID
 					break
 				else
-					mensagemOfertas = mensagemOfertas .. ofertaID.. ", "
+					mensagemOfertas = mensagemOfertas .. ofertaID .. ", "
 				end
 			end
 			result.free(selecionarOfertasNoBancoDeDados)
-			player:sendTextMessage(config.successMsgType, "Active offers ID: ".. mensagemOfertas ..".")
+			player:sendTextMessage(config.successMsgType, "[TRADE OFF] Active offers ID: ".. mensagemOfertas ..".")
 		else
-			player:sendTextMessage(config.errorMsgType, "You don't have any active offers.".)
+			player:sendTextMessage(config.errorMsgType, "[TRADE OFF] You don't have any active offers.")
 			player:getPosition():sendMagicEffect(CONST_ME_POFF)
 		end
 
@@ -461,13 +585,13 @@ function onSay(player, words, param)
 	-- !tradeoff info
 	elseif palavra[1] == "info" then
 		if not palavra[2] then
-			player:sendTextMessage(config.errorMsgType, "Please enter the offerID you want to know about.")
+			player:sendTextMessage(config.errorMsgType, "[TRADE OFF] Please enter the offerID you want to know about.")
 			player:getPosition():sendMagicEffect(CONST_ME_POFF)
 			return false
 		end
 
 		if not isNumber(palavra[2]) then
-			player:sendTextMessage(config.errorMsgType, "Please, insert only numbers.")
+			player:sendTextMessage(config.errorMsgType, "[TRADE OFF] Please, insert only numbers.")
 			player:getPosition():sendMagicEffect(CONST_ME_POFF)
 			return false
 		end
@@ -475,7 +599,7 @@ function onSay(player, words, param)
 		local ofertaID = tonumber(palavra[2])
 		local selecionarOfertas = db.storeQuery("SELECT * FROM trade_off_offers WHERE id = ".. ofertaID)
 		if not selecionarOfertas then
-			player:sendTextMessage(config.errorMsgType, "Please, insert a valid offer ID.")
+			player:sendTextMessage(config.errorMsgType, "[TRADE OFF] Please, insert a valid offer ID.")
 			player:getPosition():sendMagicEffect(CONST_ME_POFF)
 			return false
 		end
@@ -483,101 +607,121 @@ function onSay(player, words, param)
 		local playerID = result.getNumber(selecionarOfertas, "player_id")
 		local tipoDeOferta = result.getNumber(selecionarOfertas, "type")
 		local itemID = result.getNumber(selecionarOfertas, "item_id")
-		local itemCount = result.getNumber(selecionarOfertas, "item_count")
+		local quantidadeDoItemInfo = result.getNumber(selecionarOfertas, "item_count")
 		local itemCharges = result.getNumber(selecionarOfertas, "item_charges")
 		local itemDuration = result.getNumber(selecionarOfertas, "item_duration")
 		local itemName = result.getString(selecionarOfertas, "item_name")
 		local isTrade = result.getNumber(selecionarOfertas, "item_trade")
-		local cost = result.getDataLong(selecionarOfertas, "cost")
+		local cost = result.getNumber(selecionarOfertas, "cost")
 		local costCount = result.getNumber(selecionarOfertas, "cost_count")
-		local addedDate = result.getDataLong(selecionarOfertas, "date")
+		local addedDate = result.getNumber(selecionarOfertas, "date")
 		result.free(selecionarOfertas)
 
 		local normalItem = true
-		local itemInfo = ItemType(itemID)
-		local itemCount = (itemCount > 1 and itemCount or (itemInfo:getArticle() ~= "" and itemInfo:getArticle() or ""))
-		local itemName = (itemCount > 1 and itemInfo:getPluralName() or itemInfo:getName())
+		local itemInfoItemType = ItemType(itemID)
+		local artigoDoItemInfo = (quantidadeDoItemInfo > 1 and quantidadeDoItemInfo or (itemInfoItemType:getArticle() ~= "" and itemInfoItemType:getArticle() or ""))
+		local nomeDoItemInfo = (quantidadeDoItemInfo > 1 and itemInfoItemType:getPluralName() or itemInfoItemType:getName())
 
-		local itemDurationOrCharge = ""
+		local itemDuracaoOuCarga = ""
 		if itemDuration > 0 then
 			normalItem = false
-			itemDurationOrCharge = " with ".. getString(itemDuration) .." left" -- ???????????????????????????????????????????????????????????????????????
+			local duration = durationTimeString(itemDuration)
+			if not duration	then
+				player:sendTextMessage(config.errorMsgType, "[TRADE OFF] Item with duration time invalid.")
+				player:getPosition():sendMagicEffect(CONST_ME_POFF)
+				return false
+			end
+			itemDuracaoOuCarga = " with ".. duration .." left"
 		elseif itemCharges > 0 then
 			normalItem = false
 			local plural = itemCharges > 1 and "s" or ""
-			itemDurationOrCharge = " with ".. itemCharges .." charge".. plural .." left"			
+			itemDuracaoOuCarga = " with ".. itemCharges .." charge".. plural .." left"			
 		end
 
-		local information = "[TRADE OFF] Information:\n"
-		information = information .. "Offer: ".. itemCount .." "..itemName.. (normalItem and "" or (itemDurationOrCharge ~= "" and itemDurationOrCharge or ""))
+		local mensagem = "[TRADE OFF] Information:\n\n"
+		mensagem = mensagem .. "OFFER: ".. artigoDoItemInfo .." ".. nomeDoItemInfo .. (normalItem and "" or (itemDuracaoOuCarga ~= "" and itemDuracaoOuCarga or ""))
 
-		if itemInfo:isContainer() then
-			local numItems = 0
-			local itemsInside = db.storeQuery("SELECT * FROM trade_off_container_items WHERE offer_id = ".. ofertaID)
-			if itemsInside ~= false then
+		if itemInfoItemType:isContainer() then
+			local quantidadeNoContainer = 0
+			local itensContainerBancoDeDados = db.storeQuery("SELECT * FROM trade_off_container_items WHERE offer_id = ".. ofertaID)
+			if itensContainerBancoDeDados ~= false then
 				local itemsContainerMessage = "("
-				while itemsInside ~= false do
-					numItems = numItems + 1								
-					local subID = result.getNumber(itemsInside, "item_id")
-					local subCharges = result.getNumber(itemsInside, "item_charges")
-					local subDuration = result.getNumber(itemsInside, "item_duration")
-					local subCount = result.getNumber(itemsInside, "count")
+				while itensContainerBancoDeDados ~= false do
+					quantidadeNoContainer = quantidadeNoContainer + 1								
+					local subID = result.getNumber(itensContainerBancoDeDados, "item_id")
+					local subCharges = result.getNumber(itensContainerBancoDeDados, "item_charges")
+					local subDuration = result.getNumber(itensContainerBancoDeDados, "item_duration")
+					local subItemCount = result.getNumber(itensContainerBancoDeDados, "count")
 
 					normalItem = true
 					local subItemInfo = ItemType(subID)
-					local subItemCount = (subCount > 1 and subCount or (subItemInfo:getArticle() ~= "" and subItemInfo:getArticle() or ""))
-					local subItemName = (subCount > 1 and subItemInfo:getPluralName() or subItemInfo:getName())
+					local subItemArtigo = (subItemCount > 1 and subItemCount or (subItemInfo:getArticle() ~= "" and subItemInfo:getArticle() or ""))
+					local subItemName = (subItemCount > 1 and subItemInfo:getPluralName() or subItemInfo:getName())
 
-					itemDurationOrCharge = ""
+					itemDuracaoOuCarga = ""
 					if subDuration > 0 then
 						normalItem = false
-						itemDurationOrCharge = " with ".. getString(subDuration) .." left" -- ???????????????????????????????????????????????????????????????????????
+						local duration = durationTimeString(subDuration)
+						if not duration	then
+							player:sendTextMessage(config.errorMsgType, "[TRADE OFF] Container item with duration time invalid.")
+							player:getPosition():sendMagicEffect(CONST_ME_POFF)
+							return false
+						end
+						itemDuracaoOuCarga = " with ".. duration .." left"
 					elseif subCharges > 0 then
 						normalItem = false
 						local plural = subCharges > 1 and "s" or ""
-						itemDurationOrCharge = " with ".. subCharges .." charge".. plural .." left"			
+						itemDuracaoOuCarga = " with ".. subCharges .." charge".. plural .." left"			
 					end
 
-					if not result.next(itemsInside) then
-						itemsContainerMessage = itemsContainerMessage .. subItemCount .. " " .. subItemName .. (normalItem and "" or (itemDurationOrCharge ~= "" and itemDurationOrCharge or "")) ..").\n"
+					if not result.next(itensContainerBancoDeDados) then
+						itemsContainerMessage = itemsContainerMessage .. subItemArtigo .. " " .. subItemName .. (normalItem and "" or (itemDuracaoOuCarga ~= "" and itemDuracaoOuCarga or "")) ..").\n"
 						break
 					else
-						itemsContainerMessage = itemsContainerMessage .. subItemCount .. " " .. subItemName .. (normalItem and "" or (itemDurationOrCharge ~= "" and itemDurationOrCharge or "")) ..", "
+						itemsContainerMessage = itemsContainerMessage .. subItemArtigo .. " " .. subItemName .. (normalItem and "" or (itemDuracaoOuCarga ~= "" and itemDuracaoOuCarga or "")) ..", "
 					end
 				end
 
-				result.free(itemsInside)
-				information = information .." with "..numItems.." items inside.\n"
-				information = information ..itemsContainerMessage
+				mensagem = mensagem .." with ".. quantidadeNoContainer .." items inside.\n"
+				mensagem = mensagem ..itemsContainerMessage
 			end
+
+			result.free(itensContainerBancoDeDados)
 		else
-			information = information ..".\n"
+			mensagem = mensagem ..".\n"
 		end
 
-		local tradeTypes = {[1] = "Item", [2] = "Container", [3] = "Trade"}
-		local typeString = isTrade > 0 and tradeTypes[3] or tradeTypes[tipoDeOferta]
+		local tiposDeOferta = {[1] = "Item", [2] = "Container", [3] = "Trade"}
+		local oferta = isTrade > 0 and tiposDeOferta[3] or tiposDeOferta[tipoDeOferta]
 
 		if isTrade == 0 then -- dinheiro como pagamento
-			information = information .. "Price: ".. cost .." gold coins.\n"
+			mensagem = mensagem .. "PRICE: ".. cost .." gold coins.\n"
 		else -- item como pagamento
 			local costItemType = ItemType(cost)
 			local costItemCount = (costCount > 1 and costCount or (costItemType:getArticle() ~= "" and costItemType:getArticle() or ""))
-			local costItemName = (subCount > 1 and subItemInfo:getPluralName() or subItemInfo:getName())
-			information = information .. "Price: ".. costItemCount .." ".. costItemName ..".\n"
+			local costItemName = (costCount > 1 and costItemType:getPluralName() or costItemType:getName())
+			mensagem = mensagem .. "PRICE: ".. costItemCount .." ".. costItemName ..".\n"
 		end
 
-		information = information .. "Type: "..typeString..".\n"				
-		information = information .. "Added: "..os.date("%d/%m/%Y at %X%p", addedDate)..".\n"
+		mensagem = mensagem .. "TYPE: ".. oferta ..".\n"				
+		mensagem = mensagem .. "ADDED: ".. os.date("%d/%m/%Y at %X%p", addedDate) ..".\n"
 
-		local playerNameSellItem = Player(playerID):getName
-		if playerNameSellItem then
-			information = information .. "Added by: ".. playerNameSellItem..".\n"
+		local resultId = db.storeQuery("SELECT `name` FROM `players` WHERE `id` = ".. playerID)
+		if not resultId then
+			player:sendTextMessage(config.errorMsgType, "[TRADE OFF] Invalid seller.")
+			player:getPosition():sendMagicEffect(CONST_ME_POFF)
+			return false
 		end
+
+		local playerName = result.getString(resultId, "name")
+		result.free(resultId)
+
+		mensagem = mensagem .. "ADDED BY: ".. playerName ..".\n"
 
 		if config.infoOnPopUp then
-			player:popupFYI(information)
+			player:popupFYI(mensagem)
 		else
-			player:sendTextMessage(config.infoMsgType, information)
+			player:sendTextMessage(config.infoMsgType, mensagem)
 		end
 
 		return false
@@ -586,13 +730,13 @@ function onSay(player, words, param)
 	elseif palavra[1] == "buy" then
 
 		if not palavra[2] then
-			player:sendTextMessage(config.errorMsgType, "Please enter the offerID you want to know about.")
+			player:sendTextMessage(config.errorMsgType, "[TRADE OFF] Please enter the offerID you want to know about.")
 			player:getPosition():sendMagicEffect(CONST_ME_POFF)
 			return false
 		end
 
 		if not isNumber(palavra[2]) then
-			player:sendTextMessage(config.errorMsgType, "Please, insert only numbers.")
+			player:sendTextMessage(config.errorMsgType, "[TRADE OFF] Please, insert only numbers.")
 			player:getPosition():sendMagicEffect(CONST_ME_POFF)
 			return false
 		end
@@ -601,16 +745,22 @@ function onSay(player, words, param)
 		local queryResult = db.storeQuery("SELECT * FROM trade_off_offers WHERE id = ".. ofertaID)
 
 		if not queryResult then
-			player:sendTextMessage(config.errorMsgType, "Please, insert a valid offer ID.")
+			player:sendTextMessage(config.errorMsgType, "[TRADE OFF] Please, insert a valid offer ID.")
 			player:getPosition():sendMagicEffect(CONST_ME_POFF)
 			return false
 		end
 
 		local owner = result.getNumber(queryResult, "player_id")
 		local vendedor = Player(owner)
+		if not vendedor then
+			player:sendTextMessage(config.errorMsgType, "[TRADE OFF] This seller is invalid.")
+			player:getPosition():sendMagicEffect(CONST_ME_POFF)
+			return false
+		end
+
 		local playerGuid = player:getGuid()
 		if playerGuid == owner then
-			player:sendTextMessage(config.errorMsgType, "You can not buy your own offer.")
+			player:sendTextMessage(config.errorMsgType, "[TRADE OFF] You can not buy your own offer.")
 			player:getPosition():sendMagicEffect(CONST_ME_POFF)
 			return false
 		end
@@ -620,50 +770,67 @@ function onSay(player, words, param)
 		local itemCharges = result.getNumber(itemsInside, "item_charges")
 		local itemDuration = result.getNumber(itemsInside, "item_duration")
 		local isTrade = result.getNumber(queryResult, "item_trade")
-		local cost = result.getNumber(queryResult, "cost")
+		local pagamento = result.getNumber(queryResult, "cost")
 		local playerName = player:getName()
 
-		if isTrade > 0 then
-			local itemCost = ItemType(cost)
-			local costCount = result.getNumber(queryResult, "cost_count")
-			local itemCostName = (costCount > 1 and itemCost:getPluralName() or itemCost:getName())
-			local itemCostCount = (costCount > 1 and costCount or (itemCost:getArticle() ~= "" and itemCost:getArticle() or ""))
-			result.free(queryResult)
+		local townId = Town(player:getTown():getId())
+		if not depot then
+			player:sendTextMessage(config.errorMsgType, "[TRADE OFF] The city you live in has no depot.")
+			player:getPosition():sendMagicEffect(CONST_ME_POFF)
+			return false
+		end
 
-			if player:getItemCount(cost) < costCount then
-				player:sendTextMessage(config.errorMsgType, "You don't have ".. itemCostCount .." ".. itemCostName .." to buy this offer.")
+		if isTrade > 0 then
+			local itemDoSlot = player:getSlotItem(CONST_SLOT_AMMO)
+			if not itemDoSlot then
+				player:sendTextMessage(config.errorMsgType, "[TRADE OFF] The item requested in the offer must be in the ammunition slot.")
 				player:getPosition():sendMagicEffect(CONST_ME_POFF)
 				return false
 			end
 
-			local itemCostCharges = itemCost:getAttribute(ITEM_ATTRIBUTE_CHARGES)
-			local itemCostDuration = itemCost:getAttribute(ITEM_ATTRIBUTE_DURATION)
+			local itemDoSlotId = itemDoSlot:getId()
+			if itemDoSlotId == 0 then
+				player:sendTextMessage(config.errorMsgType, "[TRADE OFF] The item requested in the offer must be in the ammunition slot.")
+				player:getPosition():sendMagicEffect(CONST_ME_POFF)
+				return false
+			end
+			
+			local itemDoPagamento = ItemType(pagamento)
+			local costCount = result.getNumber(queryResult, "cost_count")
+			local itemCostName = (costCount > 1 and itemDoPagamento:getPluralName() or itemDoPagamento:getName())
+			local itemCostCount = (costCount > 1 and costCount or (itemDoPagamento:getArticle() ~= "" and itemDoPagamento:getArticle() or ""))
+			result.free(queryResult)
 
-			if itemCostCharges or itemCostDuration then
-				local itemSlotAmmo = player:getSlotItem(CONST_SLOT_AMMO)
-				itemSlotAmmo = ItemType(itemSlotAmmo.uid)
-				local itemSlotAmmoId = itemSlotAmmo:getId()
+			if player:getItemCount(pagamento) < costCount then
+				player:sendTextMessage(config.errorMsgType, "[TRADE OFF] You don't have ".. itemCostCount .." ".. itemCostName .." to buy this offer.")
+				player:getPosition():sendMagicEffect(CONST_ME_POFF)
+				return false
+			end
 
-				if itemCostCharges > 0 or itemCostDuration > 0 then
-					if itemCostCharges > 0 and itemSlotAmmoId == cost then
-						local itemSlotAmmoCharges = itemSlotAmmo:getAttribute(ITEM_ATTRIBUTE_CHARGES)
-						if itemSlotAmmoCharges ~= itemCostCharges then					
-							player:sendTextMessage(config.errorMsgType, "The ".. itemCostName .." needs to be brand new.")
-							player:getPosition():sendMagicEffect(CONST_ME_POFF)
-							return false
-						end
-					elseif itemCostDuration > 0 and itemSlotAmmoId == cost then
-						local itemSlotAmmoDuration = itemSlotAmmo:getAttribute(ITEM_ATTRIBUTE_DURATION)
-						if itemSlotAmmoDuration ~= itemCostCharges then					
-							player:sendTextMessage(config.errorMsgType, "The ".. itemCostName .." needs to be brand new.")
-							player:getPosition():sendMagicEffect(CONST_ME_POFF)
-							return false
-						end
-					else
-						player:sendTextMessage(config.errorMsgType, "You need to put the "..itemCostName.." in your ammunition slot.")
-						player:getPosition():sendMagicEffect(CONST_ME_POFF)
-						return false
-					end
+			if itemDoSlot:getCount() < costCount then
+				player:sendTextMessage(config.errorMsgType, "[TRADE OFF] You don't have ".. itemCostCount .." ".. itemCostName .." to buy this offer.")
+				player:getPosition():sendMagicEffect(CONST_ME_POFF)
+				return false
+			end
+
+			local itemDoPagamentoItemType = ItemType(itemDoPagamento)
+			local cargasDoItemDoSlot = itemDoSlot:getCharges()
+			local cargasDoItemDoPagamento = itemDoPagamentoItemType:getCharges()
+
+			if cargasDoItemDoSlot and cargasDoItemDoPagamento then
+				if cargasDoItemDoSlot < cargasDoItemDoPagamento then
+					player:sendTextMessage(config.errorMsgType, "[TRADE OFF] The ".. itemCostName .." needs to be brand new.")
+					player:getPosition():sendMagicEffect(CONST_ME_POFF)
+					return false
+				end
+			end			
+
+			local duration = itemDoSlot:getDuration()
+			if duration then
+				if duration > 0 then				
+					player:sendTextMessage(config.errorMsgType, "[TRADE OFF] The ".. itemCostName .." needs to be brand new.")
+					player:getPosition():sendMagicEffect(CONST_ME_POFF)
+					return false
 				end
 			end
 
@@ -672,32 +839,48 @@ function onSay(player, words, param)
 
 			local parcel = Game.createItem(ITEM_PARCEL)
 			local carta = Game.createItem(2598)
-			carta:setAttribute(ITEM_ATTRIBUTE_TEXT, "You sold your offer with ID: ".. ofertaID ..".")
-			parcel:addItemEx(Item(carta))
-			parcel:addItem(cost, costCount)
-			local depot = vendedor:getDepotChest(cidadeId, true)
+			carta:setAttribute(ITEM_ATTRIBUTE_TEXT, "[TRADE OFF] You sold your offer with ID: ".. ofertaID ..".")
+			parcel:addItemEx(carta)
+			parcel:addItem(pagamento, costCount)
 
-			if depot and player:removeItem(cost, costCount) then
+			local depot = vendedor:getDepotChest(cidadeId, true)
+			if not depot then
+				player:sendTextMessage(config.errorMsgType, "[TRADE OFF] The city where the seller lives has no depot.")
+				player:getPosition():sendMagicEffect(CONST_ME_POFF)
+				return false
+			end
+
+			if itemDoSlot:remove(costCount) then
 				depot:addItemEx(parcel)
-				vendedor:sendTextMessage(config.successMsgType, "The player ".. playerName .." just bought your offer with ID: ".. ofertaID ..", ".. itemCostCount .." "
-				.. itemCostName .." was sent to your ".. cidadeNome .." depot.")
+				vendedor:sendTextMessage(config.successMsgType, "[TRADE OFF] The player ".. playerName .." just bought your offer with ID: ".. ofertaID ..", ".. itemCostCount .." "
+				.. itemCostName .." was sent to your ".. cidadeNome .." depot.")			
+			else
+				player:sendTextMessage(config.errorMsgType, "[TRADE OFF] You don't have ".. itemCostCount .." ".. itemCostName .." to buy this offer.")
+				player:getPosition():sendMagicEffect(CONST_ME_POFF)
+				return false
 			end
 
 		else
-			if player:getTotalMoney() < cost then
-				player:sendTextMessage(config.errorMsgType, "You don't have enough money to buy this offer.")
+			if player:getTotalMoney() < pagamento then
+				player:sendTextMessage(config.errorMsgType, "[TRADE OFF] You don't have enough money to buy this offer.")
 				player:getPosition():sendMagicEffect(CONST_ME_POFF)
 				return false
 			else
 				local cidadeId = Town(vendedor:getTown():getId())
 				local depot = vendedor:getDepotChest(cidadeId, true)
-				if player:transferMoneyTo(vendedor, cost) and depot then
+				if not depot then
+					player:sendTextMessage(config.errorMsgType, "[TRADE OFF] The city where the seller lives has no depot.")
+					player:getPosition():sendMagicEffect(CONST_ME_POFF)
+					return false
+				end
+
+				if player:transferMoneyTo(vendedor, pagamento) then
 					local carta = Game.createItem(2598)
-					carta:setAttribute(ITEM_ATTRIBUTE_TEXT, "The player ".. playerName .." just bought your offer with ID: ".. ofertaID ..", ".. cost .." gold coins were transfered to your bank account.")
+					carta:setAttribute(ITEM_ATTRIBUTE_TEXT, "[TRADE OFF] The player ".. playerName .." just bought your offer with ID: ".. ofertaID ..", ".. pagamento .." gold coins were transfered to your bank account.")
 					depot:addItemEx(carta)
-					vendedor:sendTextMessage(config.successMsgType, "The player ".. playerName .." just bought your offer with ID: ".. ofertaID ..", ".. cost .." gold coins were transfered to your bank account.")
+					vendedor:sendTextMessage(config.successMsgType, "[TRADE OFF] The player ".. playerName .." just bought your offer with ID: ".. ofertaID ..", ".. pagamento .." gold coins were transfered to your bank account.")
 				else
-					player:sendTextMessage(config.errorMsgType, "You don't have enough money to buy this offer.")
+					player:sendTextMessage(config.errorMsgType, "[TRADE OFF] You don't have enough money to buy this offer.")
 					player:getPosition():sendMagicEffect(CONST_ME_POFF)
 					return false
 				end
@@ -715,19 +898,18 @@ function onSay(player, words, param)
 					local subDuration = result.getNumber(itemsInside, "item_duration")
 					local subCount = result.getNumber(itemsInside, "count")
 
+					local subItem
 					if subDuration > 0 then
-						local subItem = Game.createItem(subID)
+						subItem = Game.createItem(subID)
 						subItem:setAttribute(ITEM_ATTRIBUTE_DURATION, subDuration)
-						itemRemove:addItemEx(Item(subItem))
+					elseif subCharges > 0 then
+						subItem = Game.createItem(subID)
+						subItem:setAttribute(ITEM_ATTRIBUTE_CHARGES, subCharges)
 					else
-						local subItem
-						if subCharges > 0 then
-							subItem = Game.createItem(subID, subCharges)
-						else
-							subItem = Game.createItem(subID, subCount)
-						end
-						itemRemove:addItemEx(Item(subItem))
+						subItem = Game.createItem(subID, subCount)
 					end
+
+					itemRemove:addItemEx(subItem)
 
 				until not result.next(itemsInside)
 				result.free(itemsInside)
@@ -735,7 +917,7 @@ function onSay(player, words, param)
 				db.query("DELETE FROM trade_off_container_items WHERE offer_id = ".. ofertaID)
 			end
 
-			parcel:addItemEx(Item(itemRemove))
+			parcel:addItemEx(itemRemove)
 
 		else
 			local itemCount = result.getNumber(queryResult, "item_count")
@@ -747,12 +929,13 @@ function onSay(player, words, param)
 				item = Game.createItem(itemID)
 				item:setAttribute(ITEM_ATTRIBUTE_DURATION, itemDuration)
 			elseif itemCharges > 0 then
-				item = Game.createItem(itemID, itemCharges)
+				item = Game.createItem(itemID)
+				item:setAttribute(ITEM_ATTRIBUTE_CHARGES, itemCharges)
 			else
 				item = Game.createItem(itemID, itemCount)
 			end
 
-			parcel:addItemEx(Item(item))
+			parcel:addItemEx(item)
 		end
 
 		result.free(queryResult)
@@ -761,18 +944,12 @@ function onSay(player, words, param)
 		local townId = Town(player:getTown():getId())	
 		local townName = townId:getName()
 		local letter = Game.createItem(2598)
-		letter:setAttribute(ITEM_ATTRIBUTE_TEXT, "You bought the offer with ID: ".. ofertaID ..", the respective offer items were sent to ".. townName .." depot.")
-		parcel:addItemEx(Item(letter))
-		local depot = player:getDepotChest(townId, true)
-		if depot then
-			depot:addItemEx(parcel)
-			player:sendTextMessage(config.successMsgType, "You bought the offer with ID: ".. ofertaID ..", the respective offer items were sent to ".. townName .." depot.")
-		end
+		letter:setAttribute(ITEM_ATTRIBUTE_TEXT, "[TRADE OFF] You bought the offer with ID: ".. ofertaID ..", the respective offer items were sent to ".. townName .." depot.")
+		parcel:addItemEx(letter)
+		depot:addItemEx(parcel)
+		player:sendTextMessage(config.successMsgType, "[TRADE OFF] You bought the offer with ID: ".. ofertaID ..", the respective offer items were sent to ".. townName .." depot.")
 
 		return false
-
-	else
-		doPlayerSendTextMessage(cid, config.infoMsgType, config.helpMsg)
 	end
 
 	return false

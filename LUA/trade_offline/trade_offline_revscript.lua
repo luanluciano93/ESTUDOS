@@ -26,7 +26,9 @@ db.query([[
 		PRIMARY KEY (`id`),
 		FOREIGN KEY (`player_id`) REFERENCES `players`(`id`) ON DELETE CASCADE
 	) ENGINE=InnoDB DEFAULT CHARACTER SET=utf8;
+]])
 
+db.query([[
 	CREATE TABLE IF NOT EXISTS `trade_off_container_items` (
 		`offer_id` int unsigned NOT NULL,
 		`item_id` smallint unsigned NOT NULL,
@@ -743,7 +745,7 @@ function trade_offline_talkaction.onSay(player, words, param)
 
 		local vendedorId = result.getNumber(queryResult, "player_id")
 		local compradorId = player:getGuid()
-		if playerGuid == vendedorId then
+		if compradorId == vendedorId then
 			player:sendTextMessage(config.errorMsgType, "[TRADE OFF] You can not buy your own offer.")
 			player:getPosition():sendMagicEffect(CONST_ME_POFF)
 			return false
@@ -797,9 +799,8 @@ function trade_offline_talkaction.onSay(player, words, param)
 				return false
 			end
 
-			local itemDoPagamentoItemType = ItemType(itemDoPagamento) --?????
 			local cargasDoItemDoSlot = itemDoSlot:getCharges()
-			local cargasDoItemDoPagamento = itemDoPagamentoItemType:getCharges()
+			local cargasDoItemDoPagamento = itemDoPagamento:getCharges()
 
 			if cargasDoItemDoSlot and cargasDoItemDoPagamento then
 				if cargasDoItemDoSlot < cargasDoItemDoPagamento then

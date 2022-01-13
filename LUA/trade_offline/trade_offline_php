@@ -1,0 +1,1007 @@
+<style>
+		a:link.branquim
+		{
+			color:#FFFFFF;
+		}
+		
+		a:visited.branquim
+		{
+			color:#FFFFFF;
+		}
+		
+		a:hover.branquim
+		{
+			color:#FFFFFF;
+		}
+		.itemStroke {
+			color: #FFF;
+			text-shadow: -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000;
+			position: absolute;
+			padding-top: 18px;
+			z-index: 100;
+			pointer-events: none;
+		}
+		.plusMinor {
+			position: absolute;
+			padding-top: 0px;
+			padding-left: 19px;
+			z-index: 100;
+			pointer-events: none;
+		}
+		/* pagination style */
+		.pagin {
+			padding: 2px 0;
+			margin: 0;
+			font-family: "Verdana", sans-serif;
+			font-size: 7pt;
+			font-weight: bold;
+		}
+		.pagination > a {
+			text-decoration: none !important;
+		}
+		.pagination {
+			float: left;
+			left: 0;
+			margin-bottom: 10px;
+		}
+		.pagin * {
+			padding: 2px 6px;
+			margin: 0;
+		}
+		.pagin a {
+			border: solid 1px #666666;
+			background-color: #F1E0C6;
+			color: #000;
+			text-decoration: none;
+		}
+		.pagin a:hover, .pagin a:active {
+			border: solid 1px #CC0000;
+			background-color: white;
+			color: #CC0000;
+			text-decoration: none;
+		}
+		.pagin span {
+			cursor: default;
+			border: solid 1px #808080;
+			background-color: #D4C0A1;
+			color: #000;
+		}
+		.pagin span.current {
+			border: solid 1px #666666;
+			background-color: #666666;
+			color: white;
+		}
+			.blocked
+		{
+			background:#D4C0A1;
+		}
+		.boxmarket {
+			margin-bottom: 10px;
+			margin-left: 0px;
+			margin-top: 3px;
+			margin: 3px;
+			width: 32px;
+			height: 32px;
+			background: rgba(155, 155, 155, 0.53);
+			border-radius: 10px;
+			border: 1.5px solid #434040;
+			box-shadow: inset 0px 0px 10px rgba(0,0,0,0.5);
+		}
+	</style>
+		
+			<script>
+			       function trocaSH(id) {
+					  var newid = id;
+					  newid += "circle";
+					  var newidthree = id;
+					  newidthree += "table";
+					  var obj1 = document.getElementById(id);
+					  var obj2 = document.getElementById(newid);
+					  var obj3 = document.getElementById(newidthree);
+			          if(obj1.style.display == "none") {
+					obj1.style.display = "block";
+					obj2.src="./layouts/tibiarl/images/content/circle-symbol-minus.gif";
+					obj3.style.display = "table-cell";
+					}
+			          else {
+					obj1.style.display = "none";
+					obj2.src="./layouts/tibiarl/images/content/circle-symbol-plus.gif";
+					obj3.style.display = "none";
+					}
+				  };
+			</script>
+			<script type="text/javascript" src="./layouts/tibiarl/js/tradeOff.js"></script>
+<?PHP
+require_once("classes/mysql_db.php");
+include("classes/paginationClass.php");
+
+$main_content.='<div class="TableContainer">
+		<div class="CaptionContainer">
+			<div class="CaptionInnerContainer">
+				<span class="CaptionEdgeLeftTop" style="background-image:url(./layouts/tibiarl/images/content/box-frame-edge.gif);"></span>
+				<span class="CaptionEdgeRightTop" style="background-image:url(./layouts/tibiarl/images/content/box-frame-edge.gif);"></span>
+				<span class="CaptionBorderTop" style="background-image:url(./layouts/tibiarl/images/content/table-headline-border.gif);"></span>
+				<span class="CaptionVerticalLeft" style="background-image:url(./layouts/tibiarl/images/content/box-frame-vertical.gif);"></span>
+				<div class="Text">Commands</div>
+				<span class="CaptionVerticalRight" style="background-image:url(./layouts/tibiarl/images/content/box-frame-vertical.gif);"></span>
+				<span class="CaptionBorderBottom" style="background-image:url(./layouts/tibiarl/images/content/table-headline-border.gif);"></span>
+				<span class="CaptionEdgeLeftBottom" style="background-image:url(./layouts/tibiarl/images/content/box-frame-edge.gif);"></span>
+				<span class="CaptionEdgeRightBottom" style="background-image:url(./layouts/tibiarl/images/content/box-frame-edge.gif);"></span>
+					</div>
+						</div>
+							<table class="Table5" cellpadding="0" cellspacing="0">
+								<tbody>
+									<tr>
+										<td>
+										<div class="InnerTableContainer">
+											<table style="width:100%;">
+												<tbody>
+												<tr>
+													<td>
+														<div class="TableShadowContainerRightTop" >
+															<div class="TableShadowRightTop" style="background-image:url(./layouts/tibiarl/images/global/content/table-shadow-rt.gif);" ></div>
+														</div>
+														<div class="TableContentAndRightShadow" style="background-image:url(./layouts/tibiarl/images/global/content/table-shadow-rm.gif);" >
+															<div class="TableContentContainer" >
+																<table class="TableContent" width="100%"  style="border:1px solid #faf0d7;" >
+																	<tr>
+																		<TD WIDTH=25%><center><b>!tradeoff add, ValueInGolds</b><br /><small>example: !tradeoff add, 5000 <font color=green><font size=1>(<b>5K</b>)</font></font></small><br /><font color=red><font size=1>(Your offer item on <b>SLOT arrow</b>)</font></font></center></TD>
+																		<TD WIDTH=25%><center><b>!tradeoff add, ItemTrade</b><br /><small>example: !tradeoff add, Golden Legs</small><br /><font color=red><font size=1>(Your offer item on <b>SLOT arrow</b>)</font></font></center></TD>
+																		<TD WIDTH=30%><center><b>!tradeoff add, ItemTrade, Count</b><br /><small>example: !tradeoff add, Mega Coins, 10</small><br /><font color=red><font size=1>(Your offer item on <b>SLOT arrow</b>)</font></font></center></TD>
+																	</tr>									
+																</table>
+															</div>
+														</div>											
+														<div class="TableShadowContainer" >
+															<div class="TableBottomShadow" style="background-image:url(./layouts/tibiarl/images/global/content/table-shadow-bm.gif);" >
+																<div class="TableBottomLeftShadow" style="background-image:url(./layouts/tibiarl/images/global/content/table-shadow-bl.gif);" ></div>
+																<div class="TableBottomRightShadow" style="background-image:url(./layouts/tibiarl/images/global/content/table-shadow-br.gif);" ></div>
+															</div>
+														</div>
+													</td>
+												</tr>
+												<tr>
+													<td>
+														<div class="TableShadowContainerRightTop" >
+															<div class="TableShadowRightTop" style="background-image:url(./layouts/tibiarl/images/global/content/table-shadow-rt.gif);" ></div>
+														</div>
+														<div class="TableContentAndRightShadow" style="background-image:url(./layouts/tibiarl/images/global/content/table-shadow-rm.gif);" >
+															<div class="TableContentContainer" >
+																<table class="TableContent" width="100%"  style="border:1px solid #faf0d7;" >
+																	<tr>
+																		<TD WIDTH=40%><center><B>!tradeoff buy, AuctionID</b><br /><small>example: !tradeoff buy, 1943</small></center></TD>
+																		<TD WIDTH=40%><center><b>!tradeoff remove, AuctionID</b><br /><small>example: !tradeoff remove, 1943</small></center></TD>
+																	</tr>									
+																</table>
+															</div>
+														</div>											
+														<div class="TableShadowContainer" >
+															<div class="TableBottomShadow" style="background-image:url(./layouts/tibiarl/images/global/content/table-shadow-bm.gif);" >
+																<div class="TableBottomLeftShadow" style="background-image:url(./layouts/tibiarl/images/global/content/table-shadow-bl.gif);" ></div>
+																<div class="TableBottomRightShadow" style="background-image:url(./layouts/tibiarl/images/global/content/table-shadow-br.gif);" ></div>
+															</div>
+														</div>
+													</td>
+												</tr>
+												<tr>
+													<td>
+														<div class="TableShadowContainerRightTop" >
+															<div class="TableShadowRightTop" style="background-image:url(./layouts/tibiarl/images/global/content/table-shadow-rt.gif);" ></div>
+														</div>
+														<div class="TableContentAndRightShadow" style="background-image:url(./layouts/tibiarl/images/global/content/table-shadow-rm.gif);" >
+															<div class="TableContentContainer" >
+																<table class="TableContent" width="100%"  style="border:1px solid #faf0d7;" >
+																	<tr>
+																		<TD WIDTH=40%><center><b>!tradeoff info, AuctionID</b><br /><small>example: !tradeoff info, 1943</small></center></TD>
+																		<TD WIDTH=40%><center><b>!tradeoff active</b><br /><small>This command shows which offers you have active.</small></center></TD>
+																	</tr>									
+																</table>
+															</div>
+														</div>											
+														<div class="TableShadowContainer" >
+															<div class="TableBottomShadow" style="background-image:url(./layouts/tibiarl/images/global/content/table-shadow-bm.gif);" >
+																<div class="TableBottomLeftShadow" style="background-image:url(./layouts/tibiarl/images/global/content/table-shadow-bl.gif);" ></div>
+																<div class="TableBottomRightShadow" style="background-image:url(./layouts/tibiarl/images/global/content/table-shadow-br.gif);" ></div>
+															</div>
+														</div>
+													</td>
+												</tr>
+											</div>
+										</td>
+									</tr>
+								</tbody>
+							</table>
+						</div>
+					</td>
+				</tr>
+			</tbody>
+		</table>
+	</div><br />';
+
+/* Constantes de configuração */  
+define('QTDE_REGISTROS', 50);   
+define('RANGE_PAGINAS', 1);   
+
+/* Instrução de consulta para paginação com MySQL */  
+$resultado = $SQL->query("
+	SELECT
+		".$SQL->tableName('t').".".$SQL->fieldName('id')." AS 'id_um',
+		".$SQL->tableName('t').".".$SQL->fieldName('item_id')." AS 'item_id_um',
+		".$SQL->tableName('t').".*,
+		".$SQL->tableName('p').".".$SQL->fieldName('id')." AS 'id_dois',
+		".$SQL->tableName('p').".*
+	FROM
+		" . $SQL->tableName('trade_off_offers') . " AS 't'
+	LEFT JOIN
+		" . $SQL->tableName('players') . " AS 'p'
+	ON
+		".$SQL->tableName('t').".".$SQL->fieldName('player_id')." = ".$SQL->tableName('p').".".$SQL->fieldName('id')." 
+	LIMIT
+		".$linha_inicial." , " . QTDE_REGISTROS ."
+	ORDER BY
+		(".$SQL->tableName('t').".".$SQL->fieldName('id').") DESC
+")->fetchAll();
+
+/* Conta quantos registos existem na tabela */  
+$valor = $SQL->query("
+	SELECT 
+		COUNT(*) AS 'total_registros'
+	FROM
+		" . $SQL->tableName('trade_off_offers') . " AS 't', 
+	LEFT JOIN
+		" . $SQL->tableName('players') . " AS 'p'
+	ON
+		".$SQL->tableName('t').".".$SQL->fieldName('player_id')." = ".$SQL->tableName('p').".".$SQL->fieldName('id')." 
+")->fetchAll();
+
+/* Recebe o número da página via parâmetro na URL */
+$pagina_atual = (isset($_GET['page']) && is_numeric($_GET['page'])) ? $_GET['page'] : 1;
+
+/* Calcula a linha inicial da consulta */
+$linha_inicial = ($pagina_atual - 1) * QTDE_REGISTROS;
+
+/* Idêntifica a primeira página */  
+$primeira_pagina = 1;   
+
+/* Cálcula qual será a última página */
+$ultima_pagina = ceil($valor->total_registros / QTDE_REGISTROS);
+
+/* Cálcula qual será a página anterior em relação a página atual em exibição */
+$pagina_anterior = ($pagina_atual > 1) ? $pagina_atual - 1 :
+
+/* Cálcula qual será a pŕoxima página em relação a página atual em exibição */
+$proxima_pagina = ($pagina_atual < $ultima_pagina) ? $pagina_atual + 1 :
+
+/* Cálcula qual será a página inicial do nosso range */
+$range_inicial = (($pagina_atual - RANGE_PAGINAS) >= 1) ? $pagina_atual - RANGE_PAGINAS : 1;
+
+/* Cálcula qual será a página final do nosso range */
+$range_final = (($pagina_atual + RANGE_PAGINAS) <= $ultima_pagina ) ? $pagina_atual + RANGE_PAGINAS : $ultima_pagina;
+
+/* Verifica se vai exibir o botão "Primeiro" e "Pŕoximo" */
+$exibir_botao_inicio = ($range_inicial < $pagina_atual) ? 'mostrar' : 'esconder';
+
+/* Verifica se vai exibir o botão "Anterior" e "Último" */
+$exibir_botao_final = ($range_final > $pagina_atual) ? 'mostrar' : 'esconder';
+
+if(empty($resultado)){
+	$main_content.='
+	<div class="pagination">
+		<div class="pagin"><a href="?subtopic=tradeoff&page='.$primeira_pagina.'">«';
+			/* Loop para montar a páginação central com os números */   
+			for ($i = 1; $i <= $range_final; $i++){
+				$destaque = ($i == $pagina_atual) ? 'destaque' : '' ; 
+				$main_content.= '<a href="?subtopic=tradeoff&page='.$i.'">'.$i.'</a>';
+			}
+			$main_content.= '<a href="?subtopic=tradeoff&page='.$ultima_pagina.'"> »</a> 
+		</div>
+	</div>';
+		
+	$main_content.='
+	<div style="float: right;">
+		<form action="?subtopic=tradeoff&action=buscar" method="post">
+			<input type="text" name="buscar_player" placeholder="Player Name">
+			<input type="text" name="buscar_item" placeholder="Item Name">
+			<input type="submit" name="" value="Search">
+		</form>
+
+		</strong>
+
+	</div>
+	<div style="clear: both;"></div>
+		<div class="TableContainer">
+			<div class="CaptionContainer">
+				<div class="CaptionInnerContainer">
+					<span class="CaptionEdgeLeftTop" style="background-image:url(./layouts/tibiarl/images/content/box-frame-edge.gif);"></span>
+					<span class="CaptionEdgeRightTop" style="background-image:url(./layouts/tibiarl/images/content/box-frame-edge.gif);"></span>
+					<span class="CaptionBorderTop" style="background-image:url(./layouts/tibiarl/images/content/table-headline-border.gif);"></span>
+					<span class="CaptionVerticalLeft" style="background-image:url(./layouts/tibiarl/images/content/box-frame-vertical.gif);"></span>
+					<div class="Text">
+						<a href="?subtopic=tradeoff"><font color=white>TradeOFF List</font></a>
+						<p style="display: inline; float: right; margin: 0 10px 0px 0px;">Filters: <a class="branquim" href="?subtopic=tradeoff&action=vip">[ Items VIP ]</a>
+							<a class="branquim" href="?subtopic=tradeoff&action=container">[ Container ]</a>
+							<a class="branquim" href="?subtopic=tradeoff&action=exchange">[ Exchange ]</a>
+						</p>
+					</div>
+					<span class="CaptionVerticalRight" style="background-image:url(./layouts/tibiarl/images/content/box-frame-vertical.gif);"></span>
+					<span class="CaptionBorderBottom" style="background-image:url(./layouts/tibiarl/images/content/table-headline-border.gif);"></span>
+					<span class="CaptionEdgeLeftBottom" style="background-image:url(./layouts/tibiarl/images/content/box-frame-edge.gif);"></span>
+					<span class="CaptionEdgeRightBottom" style="background-image:url(./layouts/tibiarl/images/content/box-frame-edge.gif);"></span>
+				</div>
+			</div>';
+			
+			function secondsToTime($inputSeconds) {
+				$secondsInAMinute = 60;
+				$secondsInAnHour = 60 * $secondsInAMinute;
+				$secondsInADay = 24 * $secondsInAnHour;
+
+				// Extract days
+				$days = floor($inputSeconds / $secondsInADay); # floor — Arredonda frações para baixo
+
+				// Extract hours
+				$hourSeconds = $inputSeconds % $secondsInADay;
+				$hours = floor($hourSeconds / $secondsInAnHour);
+
+				// Extract minutes
+				$minuteSeconds = $hourSeconds % $secondsInAnHour;
+				$minutes = floor($minuteSeconds / $secondsInAMinute);
+
+				// Extract the remaining seconds
+				$remainingSeconds = $minuteSeconds % $secondsInAMinute;
+				$seconds = ceil($remainingSeconds); # ceil — Arredonda frações para cima
+
+				// Format and return
+				$timeParts = [];
+				$sections = [
+					'day' => (int)$days,
+					'hour' => (int)$hours,
+					'minute' => (int)$minutes,
+					'second' => (int)$seconds,
+				];
+
+				foreach ($sections as $name => $value){
+					if ($value > 0){
+						$timeParts[] = $value. ' '.$name.($value == 1 ? '' : 's');
+					}
+				}
+
+				return implode(', ', $timeParts); # implode — Junta elementos de uma matriz em uma string
+			}
+
+			function _getContainerFromBackpack($chave, $oSql){
+				$chave->items = json_decode(json_encode(array('lista'=>[],'total'=> 0))); # json_decode — Decodifica uma string JSON e json_encode — Retorna a representação JSON de um valor
+				$x = $SQL->query("SELECT * FROM " . $SQL->tableName('trade_off_container_items') . " WHERE ".$SQL->fieldName('offer_id')." = :offer_id")->fetchAll();
+				??????????????? $x->bindValue('offer_id', $chave->id_um);
+				???????????????? $x->execute();
+
+				????????????????$chave->items->lista = $x->fetchAll(PDO::FETCH_CLASS);
+				????????????????$chave->items->total = $x->rowCount();
+		
+				return $chave;
+			}
+
+			if($action == 'buscar'){
+				$search_item = $_POST['buscar_item'];		
+				if($search_item) {
+					$sql = "SELECT t.id as id_um, t.item_id as item_id_um, t.*, 
+							   p.id as id_dois, p.*
+						  FROM trade_off_offers as t
+					 LEFT JOIN players as p
+							ON t.player_id = p.id
+						 WHERE (t.item_name LIKE '%".$search_item."%')
+						 ORDER BY (t.id) DESC
+						 LIMIT {$linha_inicial}, " . QTDE_REGISTROS ." ";
+					}
+	
+					$search_player = $_POST['buscar_player'];
+				if($search_player) {
+					$sql = "SELECT t.id as id_um, t.item_id as item_id_um, t.*, 
+						   p.id as id_dois, p.*
+					  FROM trade_off_offers as t
+				 LEFT JOIN players as p
+						ON t.player_id = p.id
+					 WHERE (p.name LIKE '%".$search_player."%')
+					 ORDER BY (t.id) DESC
+					 LIMIT {$linha_inicial}, " . QTDE_REGISTROS ." ";
+				}
+
+				if($search_player == "" && $search_item == "") {
+					header('Location: ?subtopic=tradeoff&action', true);
+					exit();
+				}
+			} else if($action == 'vip'){
+				$sql = "SELECT t.id as id_um, t.item_id as item_id_um, t.*, 
+							   p.id as id_dois, p.*
+						  FROM trade_off_offers as t
+					 LEFT JOIN players as p
+							ON t.player_id = p.id
+						 WHERE (t.type = 1)
+						 ORDER BY (t.id) DESC
+						 LIMIT {$linha_inicial}, " . QTDE_REGISTROS ."";
+			} else if($action == 'container'){
+				$sql = "SELECT t.id as id_um, t.item_id as item_id_um, t.*, 
+				   p.id as id_dois, p.*
+					  FROM trade_off_offers as t
+				 LEFT JOIN players as p
+						ON t.player_id = p.id
+					 WHERE (t.type = 2)
+					 ORDER BY (t.id) DESC
+					 LIMIT {$linha_inicial}, " . QTDE_REGISTROS ."";
+			} else if($action == 'exchange'){
+				$sql = "SELECT t.id as id_um, t.item_id as item_id_um, t.*, 
+							   p.id as id_dois, p.*
+						  FROM trade_off_offers as t
+					 LEFT JOIN players as p
+							ON t.player_id = p.id
+						 WHERE (t.item_trade = 1)
+						 ORDER BY (t.id) DESC
+						 LIMIT {$linha_inicial}, " . QTDE_REGISTROS ."";
+			} else {
+				$sql = "SELECT t.id as id_um, t.item_id as item_id_um, t.*, 
+							   p.id as id_dois, p.*
+						  FROM trade_off_offers as t
+					 LEFT JOIN players as p
+							ON t.player_id = p.id
+						 WHERE (t.item_name LIKE '%".$search_item."%' || p.name LIKE '%".$search_player."%')
+						 ORDER BY (t.id) DESC
+						 LIMIT {$linha_inicial}, " . QTDE_REGISTROS ." ";
+			}
+
+			$resultado = $SQL->query($sql)->fetchAll();
+			$oNew = json_decode(json_encode(Array('lista'=>[],'total' => 0)));
+	
+			foreach ($resultado as $key => $chave){
+				if ($chave->type == 2) {
+					$_aux = _getContainerFromBackpack($chave, $oSql);
+					$oNew->lista[] = $_aux;
+				} else {
+					$oNew->lista[] = $chave;
+				}
+			}
+	
+			$resultado = $oNew->lista;
+	
+			if ($resultado == true) {
+				$main_content.= '
+				<table class="Table3" cellpadding="0" cellspacing="0">
+					<tbody>
+						<tr>
+							<td>
+								<div class="InnerTableContainer">
+									<table style="width:100%;">
+										<tbody>
+											<tr>
+												<td>
+													<div class="TableShadowContainerRightTop">
+														<div class="TableShadowRightTop" style="background-image:url(./layouts/tibiarl/images/content/table-shadow-rt.gif);"></div>
+													</div>
+													<div class="TableContentAndRightShadow" style="background-image:url(./layouts/tibiarl/images/content/table-shadow-rm.gif);">
+													<div class="TableContentContainer">
+													<table class="TableContent" width="100%" style="border:1px solid #faf0d7;" >
+														<TR BGCOLOR="#505050">
+															<TD CLASS=white><b><center>ID</center></b></TD>
+															<TD class="white"><b><center>#</center></b></TD>
+															<TD class="white"><b><center>Item Name</center></b></TD>
+															<TD class="white"><b><center>Player</center></b></TD>
+															<TD class="white"><b><center>Cost</center></b></td>
+															<TD class="white"><b><center>Buy</center></b></td>
+														</TR>';
+
+				foreach ($resultado as $x) {
+					// Verifica item em items XML
+					$itemsxml = simplexml_load_file($config['site']['serverPath'].'/data/items/items.xml') or die('<b>Could not load items!</b>');	
+					foreach($itemsxml->item as $v) {
+							$itemList[(int)$v['id']] = ucwords(strtolower($v['name']));
+						foreach($v as $c){
+							if($c['key'] == 'attack'){
+								$attack[(int)$v['id']] = $c['value'];
+							}
+							if($c['key'] == 'defense'){
+								$defense[(int)$v['id']] = $c['value'];
+							}
+							if($c['key'] == 'armor'){
+								$armor[(int)$v['id']] = $c['value'];
+							}
+							if($c['key'] == 'weight'){
+								$i_weight[(int)$v['id']] = number_format((int)$c['value']/100, 2, '.', '');
+							}					
+							if($c['key'] == 'speed'){
+								if($c['value'] > 0){
+									$svalue = '+'.$c['value'].'';
+								} else {
+									$svalue = $c['value'];
+								}
+								$speed[(int)$v['id']] = ''.$svalue.'';
+							}
+							if($c['key'] == 'containerSize'){
+								$volume[(int)$v['id']] = $c['value'];
+							}
+							if($c['key'] == 'description'){
+								$desc[(int)$v['id']] = $c['value'];
+							}
+							if($c['key'] == 'charges'){
+								$carga[(int)$v['id']] = $c['value'];
+							}
+							if($c['key'] == 'transformEquipTo'){
+								$transform[(int)$v['id']] = $c['value'];
+							}
+						}
+					}
+			
+					if ($x->cost == true) {
+						$id_item = (int)$x->cost;
+						$nome_item = $itemList[$x->cost];
+						$atk_item = $attack[$id_item];
+						$def_item = $defense[$id_item];
+						$armor_item = $armor[$id_item];
+						$peso_item = $i_weight[$id_item];
+						$speed_item = $speed[$id_item];
+						$volume_item = $volume[$id_item];
+						$desc_item = $desc[$id_item];
+						$carga_item = $carga[$id_item];
+						$duracao_item = $transform[$id_item];
+					}
+				
+					if ($x->item_id_um == true) {
+						$id_itemUm = (int)$x->item_id_um;
+						$nome_itemUm = $itemList[$x->item_id_um];
+						$atk_itemUm = $attack[$id_itemUm];
+						$def_itemUm = $defense[$id_itemUm];
+						$armor_itemUm = $armor[$id_itemUm];
+						$peso_itemUm = $i_weight[$id_itemUm];
+						$speed_itemUm = $speed[$id_itemUm];
+						$volume_itemUm = $volume[$id_itemUm];
+						$desc_itemUm = $desc[$id_itemUm];
+						$transform_itemUm = $transform[$id_itemUm];
+						$carga_itemUm = $x->item_charges;
+						$duracao_itemUm = $x->item_duration;
+					}
+					switch($x->type) {
+						case 0:
+							if(is_int($number_of_rows / 2)) { $bgcolor = $config['site']['darkborder']; } else { $bgcolor = $config['site']['lightborder']; } $number_of_rows++;
+							$main_content.='<TR id="row'.$x->id_um .'" BGCOLOR='.$bgcolor.'>';
+							$main_content.='<TD><center><span>'.$x->id_um .'</span></center></TD><TD><center><span class="itemStroke">'.$x->item_count .'</span><span >';
+							$main_content.='<image class="HelperDivIndicator" onMouseOver="ActivateHelperDiv($(this), \''. ucwords($x->item_name) .'\',\' <strong>Atributtes: </strong><br/>';
+									if($atk_itemUm == true) {
+										$main_content.='attack: '.$atk_itemUm.'<br/>';
+									}
+									if($armor_itemUm == true) {
+										$main_content.='armor: '.$armor_itemUm.'<br/>';
+									}
+									if($def_itemUm == true) {
+										$main_content.='def: '.$def_itemUm.'<br/>';
+									}
+									if($peso_itemUm == true) {
+										$main_content.='cap: '.$peso_itemUm / 1 .' oz<br/>';
+									}
+									if($speed_itemUm == true) {
+										$main_content.='speed: '.$speed_itemUm / 2 .'<br/>';
+									}
+									if($volume_itemUm == true) {
+										$main_content.='vol: '.$volume_itemUm.'<br/>';
+									}
+									if($carga_itemUm == true) {
+										$main_content.='charges: '.$carga_itemUm.'<br/>';
+									}
+									$result_duration_item = 0;
+									if($transform_itemUm == true) {
+										$itemsxml = simplexml_load_file($config['site']['serverPath'].'/data/items/items.xml') or die('<b>Could not load items!</b>');	
+										foreach($itemsxml->item as $v) {
+											$itemList[$v['id']] = ucwords(strtolower($v['name']));
+										foreach($v as $c) {
+												if($c['key'] == 'duration'){
+													$duratex[(int)$v['id']] = $c['value'];
+												}
+											}
+										}
+										$id_transform_item = (int)$transform_itemUm;
+										$result_duration_item = $duratex[$id_transform_item];
+									}
+							if($duracao_itemUm == true){
+							$main_content.=' <strong>Duration: </strong>';
+								if($duracao_itemUm == true) {
+									if(($x->item_id_um && $x->item_duration >= $result_duration_item)){
+										$main_content.='that is brand-new<br/>';
+									}else{
+										$main_content.=''.secondsToTime($x->item_duration).'<br/>';
+									}
+								}
+							}
+							if($desc_itemUm == true) {
+									$main_content.='<b>Description:</b> '.$desc_itemUm.'<br/>';
+							}
+							$main_content.=' <strong>Amount: </strong>'. $x->item_count .'\');" onMouseOut="$(\'#HelperDivContainer\').hide();" style="border:0px;" src="/images/items/'. $x->item_id_um .'.png" /></span></center></TD><TD><div style="display: inline;" id="'. $x->id_um .'">';
+							$main_content.='<center><b>'. ucwords($x->item_name ).'</b></center>
+							<center><font size=1>Added: '.date("d/m/Y H:i:s", $x->date).'</font></center></div></TD><TD><center><a href="?subtopic=characters&name='. urlencode($x->name).'">'.$x->name .'</a><br></center></TD>';
+								switch($x->item_trade){
+									case 0:
+										if($x->cost <= 999){
+											$main_content.='<TD><center><span class="itemStroke">'.number_format($x->cost, 0 ,'','.') / 1 .'gps</span><a class="equipment"><img src="images/items/2148.gif" width="32" height="32"/><br /></center></TD>';
+										}
+										elseif($x->cost <= 9999){
+											$main_content.='<TD><center><span class="itemStroke">'.number_format($x->cost, 0 ,'','.') / 1 .'k</span><a class="equipment"><img src="images/items/2152.gif" width="32" height="32"/><br /></center></TD>';
+										}
+										elseif($x->cost <= 999999){
+											$main_content.='<TD><center><span class="itemStroke">'.number_format($x->cost, 0 ,'','.') / 1 .'k</span><a class="equipment"><img src="images/items/2160.gif" width="32" height="32"/><br /></center></TD>';
+										}
+										elseif($x->cost <= 999999999){
+											$main_content.='<TD><center><span class="itemStroke">'.number_format($x->cost, 0 ,'','.') / 1 .'kk</span><a class="equipment"><img src="images/items/12672.gif" width="32" height="32"/><br /></center></TD>';
+										}
+										elseif($x->cost <= 99999999999){
+											$main_content.='<TD><center><span class="itemStroke">'.number_format($x->cost, 0 ,'','.') / 1 .'kkk</span><a class="equipment"><img src="images/items/12672.gif" width="32" height="32"/><br /></center></TD>';
+										}
+									break;
+									
+									case 1:
+										$main_content.='<TD><center><span class="itemStroke">'.$x->cost_count .'</span>';
+										$main_content.='<a class="equipment"><image class="HelperDivIndicator" onMouseOver="ActivateHelperDiv($(this), \''.$itemList[$x->cost] .'\',\'<b>Atributtes:</b><br/>';
+											if($atk_item == true) {
+												$main_content.='attack: '.$atk_item.'<br/>';
+											}
+											if($armor_item == true) {
+												$main_content.='armor: '.$armor_item.'<br/>';
+											}
+											if($def_item == true) {
+												$main_content.='def: '.$def_item.'<br/>';
+											}
+											if($peso_item == true) {
+												$main_content.='cap: '.$peso_item / 1 .' oz<br/>';
+											}
+											if($speed_item == true) {
+												$main_content.='speed: '.$speed_item / 2 .'<br/>';
+											}
+											if($volume_item == true) {
+												$main_content.='vol: '.$volume_item.'<br/>';
+											}
+											if($carga_item == true) {
+												$main_content.='charges: '.$carga_item.'<br/>';
+											}
+											if($duracao_item == true) {
+												$itemsxml = simplexml_load_file($config['site']['serverPath'].'/data/items/items.xml') or die('<b>Could not load items!</b>');	
+												foreach($itemsxml->item as $v) {
+													$itemList[$v['id']] = ucwords(strtolower($v['name']));
+												foreach($v as $c) {
+														if($c['key'] == 'duration'){
+															$duratex[(int)$v['id']] = $c['value'];
+														}
+													}
+												}
+												$id_transform_item = (int)$duracao_item;
+												$result_duration_item = $duratex[$id_transform_item];
+												$main_content.='duration: '.secondsToTime($result_duration_item).'<br/>';
+											}
+											if($desc_item == true) {
+												$main_content.='<b>Description</b>: '.$desc_item.'<br/>';
+											}
+										$main_content.='<b>Amount:</b>'.$x->cost_count .'\');" onMouseOut="$(\'#HelperDivContainer\').hide();" style="border:0px;" src="/images/items/'.$x->cost .'.png" /></span><br /></center></TD>';
+									break;
+								}
+							$main_content.='<TD><center>!tradeoff buy, '.$x->id_um .'</center></TD></TR>';
+						break;
+						
+						case 1:
+							if(is_int($number_of_rows / 2)) { $bgcolor = $config['site']['darkborder']; } else { $bgcolor = $config['site']['lightborder']; } $number_of_rows++;	
+							$main_content.='<TR id="row'.$x->id_um .'" BGCOLOR='.$bgcolor.'>';
+							$main_content.='<TD><center><span>'.$x->id_um .'</span></center></TD><TD><center><span class="itemStroke">'.$x->item_count .'</span><span >';
+							$main_content.='<image class="HelperDivIndicator" onMouseOver="ActivateHelperDiv($(this), \''. ucwords($x->item_name) .'\',\' <strong>Atributtes: </strong><br/>';
+								if($atk_itemUm == true) {
+									$main_content.='attack: '.$atk_itemUm.'<br/>';
+								}
+								if($armor_itemUm == true) {
+									$main_content.='armor: '.$armor_itemUm.'<br/>';
+								}
+								if($def_itemUm == true) {
+									$main_content.='def: '.$def_itemUm.'<br/>';
+								}
+								if($peso_itemUm == true) {
+									$main_content.='cap: '.$peso_itemUm / 1 .' oz<br/>';
+								}
+								if($speed_itemUm == true) {
+									$main_content.='speed: '.$speed_itemUm / 2 .'<br/>';
+								}
+								if($volume_itemUm == true) {
+									$main_content.='vol: '.$volume_itemUm.'<br/>';
+								}
+								if($carga_itemUm == true) {
+									$main_content.='charges: '.$carga_itemUm.'<br/>';
+								}
+							if($duracao_itemUm == true)	{
+							$main_content.=' <strong>Duration: </strong>';
+								if($duracao_itemUm == true) {
+									if(($x->item_id_um && $x->item_duration >= $result_duration_item)){
+										$main_content.='that is brand-new<br/>';
+									}else{
+										$main_content.=''.secondsToTime($x->item_duration).'<br/>';
+									}
+								}
+							}
+							if($desc_itemUm == true) {
+								$main_content.='<b>Description</b>: '.$desc_itemUm.'<br/>';
+							}
+							$main_content.=' <strong>Amount: </strong>'. $x->item_count .'\');" onMouseOut="$(\'#HelperDivContainer\').hide();" style="border:0px;" src="/images/items/'. $x->item_id_um .'.png" /></span></center></TD><TD><div style="display: inline;" id="'. $x->id_um .'">';
+							$main_content.='<center><b>'. ucwords($x->item_name ).'</b></center>
+							<center><font size=1>Added: '.date("d/m/Y H:i:s", $x->date).'</font></center></div></TD><TD><center><a href="?subtopic=characters&name='. urlencode($x->name).'">'.$x->name .'</a><br></center></TD>';
+							
+								switch($x->item_trade){
+									case 0:
+										if($x->cost <= 999){
+										$main_content.='<TD><center><span class="itemStroke">'.number_format($x->cost, 0 ,'','.') / 1 .'gps</span><a class="equipment"><img src="images/items/2148.gif" width="32" height="32"/><br /></center></TD>';
+										}
+										elseif($x->cost <= 9999){
+											$main_content.='<TD><center><span class="itemStroke">'.number_format($x->cost, 0 ,'','.') / 1 .'k</span><a class="equipment"><img src="images/items/2152.gif" width="32" height="32"/><br /></center></TD>';
+										}
+										elseif($x->cost <= 999999){
+											$main_content.='<TD><center><span class="itemStroke">'.number_format($x->cost, 0 ,'','.') / 1 .'k</span><a class="equipment"><img src="images/items/2160.gif" width="32" height="32"/><br /></center></TD>';
+										}
+										elseif($x->cost <= 999999999){
+											$main_content.='<TD><center><span class="itemStroke">'.number_format($x->cost, 0 ,'','.') / 1 .'kk</span><a class="equipment"><img src="images/items/12672.gif" width="32" height="32"/><br /></center></TD>';
+										}
+										elseif($x->cost <= 99999999999){
+											$main_content.='<TD><center><span class="itemStroke">'.number_format($x->cost, 0 ,'','.') / 1 .'kkk</span><a class="equipment"><img src="images/items/12672.gif" width="32" height="32"/><br /></center></TD>';
+										}
+									break;
+									
+									case 1:
+										$main_content.='<TD><center><span class="itemStroke">'.$x->cost_count .'</span>';
+										$main_content.='<a class="equipment"><image class="HelperDivIndicator" onMouseOver="ActivateHelperDiv($(this), \''.$itemList[$x->cost] .'\',\'<b>Atributtes:</b><br/>';
+											if($atk_item == true) {
+												$main_content.='attack: '.$atk_item.'<br/>';
+											}
+											if($armor_item == true) {
+												$main_content.='armor: '.$armor_item.'<br/>';
+											}
+											if($def_item == true) {
+												$main_content.='def: '.$def_item.'<br/>';
+											}
+											if($peso_item == true) {
+												$main_content.='cap: '.$peso_item / 1 .' oz<br/>';
+											}
+											if($speed_item == true) {
+												$main_content.='speed: '.$speed_item / 2 .'<br/>';
+											}
+											if($volume_item == true) {
+												$main_content.='vol: '.$volume_item.'<br/>';
+											}
+											if($carga_item == true) {
+												$main_content.='charges: '.$carga_item.'<br/>';
+											}
+											if($duracao_item == true) {
+												$itemsxml = simplexml_load_file($config['site']['serverPath'].'/data/items/items.xml') or die('<b>Could not load items!</b>');	
+												foreach($itemsxml->item as $v) {
+													$itemList[$v['id']] = ucwords(strtolower($v['name']));
+												foreach($v as $c) {
+														if($c['key'] == 'duration'){
+															$duratex[(int)$v['id']] = $c['value'];
+														}
+													}
+												}
+												$id_transform_item = (int)$duracao_item;
+												$result_duration_item = $duratex[$id_transform_item];
+												$main_content.='duration: '.secondsToTime($result_duration_item).'<br/>';
+											}
+											if($desc_item == true) {
+												$main_content.='<b>Description:</b> '.$desc_item.'<br/>';
+											}
+										$main_content.='<b>Amount:</b>'.$x->cost_count .'\');" onMouseOut="$(\'#HelperDivContainer\').hide();" style="border:0px;" src="/images/items/'.$x->cost .'.png" /></span><br /></center></TD>';	
+									break;
+									
+								}
+							$main_content.='<TD><center>!tradeoff buy, '.$x->id_um .'</center></TD></TR>';
+						break;
+						
+						case 2:
+							if(is_int($number_of_rows / 2)) { $bgcolor = $config['site']['darkborder']; } else { $bgcolor = $config['site']['lightborder']; } $number_of_rows++;
+							$main_content.='
+								<TR id="row'.$x->id_um .'" BGCOLOR='.$bgcolor .'>
+								<TD><center><span>'.$x->id_um .'</span></center></TD><TD><center><img id="'.$x->id_um .'circle" class="plusMinor" src="./layouts/tibiarl/images/content/circle-symbol-plus.gif" alt="plusminor"><span class="itemStroke">'.$x->items->total .'</span><span ><image class="HelperDivIndicator" onMouseOver="ActivateHelperDiv($(this), \''. ucwords($x->item_name) .'\', \'Click to view this container.\', \'\');" onMouseOut="$(\'#HelperDivContainer\').hide();" style="cursor: pointer;" onclick="trocaSH('. $x->id_um .')" style="border:0px;" src="/images/items/'. $x->item_id_um .'.png" /></span></center></TD><TD><center><b>'. ucwords($x->item_name) .'</b></center><center><font size=1>Added: '.date("d/m/Y H:i:s", $x->date).'</font></center></TD>
+								<TD><center><a href="?subtopic=characters&name='. urlencode($x->name).'">'. $x->name .'</a></center></TD>';
+							switch($x->item_trade){
+								case 0:
+									if($x->cost <= 999){
+										$main_content.='<TD><center><span class="itemStroke">'.number_format($x->cost, 0 ,'','.') / 1 .'gps</span><a class="equipment"><img src="images/items/2148.gif" width="32" height="32"/><br /></center></TD>';
+									}
+									elseif($x->cost <= 9999){
+										$main_content.='<TD><center><span class="itemStroke">'.number_format($x->cost, 0 ,'','.') / 1 .'k</span><a class="equipment"><img src="images/items/2152.gif" width="32" height="32"/><br /></center></TD>';
+									}
+									elseif($x->cost <= 999999){
+										$main_content.='<TD><center><span class="itemStroke">'.number_format($x->cost, 0 ,'','.') / 1 .'k</span><a class="equipment"><img src="images/items/2160.gif" width="32" height="32"/><br /></center></TD>';
+									}
+									elseif($x->cost <= 999999999){
+										$main_content.='<TD><center><span class="itemStroke">'.number_format($x->cost, 0 ,'','.') / 1 .'kk</span><a class="equipment"><img src="images/items/12672.gif" width="32" height="32"/><br /></center></TD>';
+									}
+									elseif($x->cost <= 99999999999){
+										$main_content.='<TD><center><span class="itemStroke">'.number_format($x->cost, 0 ,'','.') / 1 .'kkk</span><a class="equipment"><img src="images/items/12672.gif" width="32" height="32"/><br /></center></TD>';
+									}
+								break;
+								
+								case 1:
+									$main_content.='<TD><center><span class="itemStroke">'.$x->cost_count .'</span>';
+									$main_content.='<a class="equipment"><image class="HelperDivIndicator" onMouseOver="ActivateHelperDiv($(this), \''.$itemList[$x->cost] .'\',\'<b>Atributtes:</b><br/>';
+										if($atk_item == true) {
+											$main_content.='attack: '.$atk_item.'<br/>';
+										}
+										if($armor_item == true) {
+											$main_content.='armor: '.$armor_item.'<br/>';
+										}
+										if($def_item == true) {
+											$main_content.='def: '.$def_item.'<br/>';
+										}
+										if($peso_item == true) {
+											$main_content.='cap: '.$peso_item / 1 .' oz<br/>';
+										}
+										if($speed_item == true) {
+											$main_content.='speed: '.$speed_item / 2 .'<br/>';
+										}
+										if($volume_item == true) {
+											$main_content.='vol: '.$volume_item.'<br/>';
+										}
+										if($carga_item == true) {
+											$main_content.='charges: '.$carga_item.'<br/>';
+										}
+										if($duracao_item == true) {
+												$itemsxml = simplexml_load_file($config['site']['serverPath'].'/data/items/items.xml') or die('<b>Could not load items!</b>');	
+												foreach($itemsxml->item as $v) {
+													$itemList[$v['id']] = ucwords(strtolower($v['name']));
+												foreach($v as $c) {
+														if($c['key'] == 'duration'){
+															$duratex[(int)$v['id']] = $c['value'];
+														}
+													}
+												}
+												$id_transform_item = (int)$duracao_item;
+												$result_duration_item = $duratex[$id_transform_item];
+												$main_content.='duration: '.secondsToTime($result_duration_item).'<br/>';
+											}
+										if($desc_item == true) {
+											$main_content.='<b>Description:</b> '.$desc_item.'<br/>';
+										}
+									$main_content.='<b>Amount:</b>'.$x->cost_count .'\');" onMouseOut="$(\'#HelperDivContainer\').hide();" style="border:0px;" src="/images/items/'.$x->cost .'.png" /></span><br /></center></TD>';
+								break;
+							}
+							$main_content.='<TD><center>!tradeoff buy, '.$x->id_um .'</center></TD></TR>';
+							$main_content.='<tr BGCOLOR='.$bgcolor .'>';
+							$main_content .='<td colspan="7" id="'.$x->id_um .'table" style="display:none;"><div style="display: none;" id="'.$x->id_um .'">';
+							
+							foreach($x->items->lista as $key => $y){
+								if ($y->item_id == true) {
+									$id_item = (int)$y->item_id;
+									$nome_item_container = $itemList[$y->item_id];
+									$atk_item_container = $attack[$id_item];
+									$def_item = $defense[$id_item];
+									$armor_item_container = $armor[$id_item];
+									$peso_item_container = $i_weight[$id_item];
+									$speed_item_container = $speed[$id_item];
+									$volume_item_container = $volume[$id_item];
+									$desc_item_container = $desc[$id_item];
+									$transform_item_container = $transform[$id_item];
+									$carga_item_container = $y->item_charges;
+									$duracao_item_container = $y->item_duration;
+								}
+							$main_content.='<div style="display:inline-block" class="boxmarket"><span class="itemStroke">'.$y->count .'</span>';
+							$main_content.='<image class="HelperDivIndicator" onMouseOver="ActivateHelperDiv($(this), \''. ucwords($nome_item_container) .'\',\' <strong>Atributtes: </strong><br/>';
+								if($atk_item_container == true) {
+									$main_content.='attack: '.$atk_item_container.'<br/>';
+								}
+								if($armor_item_container == true) {
+									$main_content.='armor: '.$armor_item_container.'<br/>';
+								}
+								if($def_item_container == true) {
+									$main_content.='def: '.$def_item_container.'<br/>';
+								}
+								if($peso_item_container == true) {
+									$main_content.='cap: '.$peso_item_container / 1 .' oz<br/>';
+								}
+								if($speed_item_container == true) {
+									$main_content.='speed: '.$speed_item_container / 2 .'<br/>';
+								}
+								if($volume_item_container == true) {
+									$main_content.='vol: '.$volume_item_container.'<br/>';
+								}
+								if($carga_item_container == true) {
+									$main_content.='charges: '.$carga_item_container.'<br/>';
+								}
+								$result_duration_item_container = 0;
+								if($transform_item_container == true) {
+										$itemsxml = simplexml_load_file($config['site']['serverPath'].'/data/items/items.xml') or die('<b>Could not load items!</b>');	
+										foreach($itemsxml->item as $v) {
+											$itemList[$v['id']] = ucwords(strtolower($v['name']));
+										foreach($v as $c) {
+												if($c['key'] == 'duration'){
+													$duratex[(int)$v['id']] = $c['value'];
+												}
+											}
+										}
+										$id_transform_item_container = (int)$transform_item_container;
+										$result_duration_item_container = $duratex[$id_transform_item_container];
+										//$main_content.='duration: '.secondsToTime($result_duration_item_container).'<br/>';
+								}
+								if($duracao_item_container == true){
+									$main_content.=' <strong>Duration: </strong>';
+										if($duracao_item_container == true) {
+											if(($y->item_id && $y->item_duration == $result_duration_item_container)){
+												$main_content.='that is brand-new<br/>';
+											}else{
+												$main_content.=''.secondsToTime($y->item_duration).'<br/>';
+											}
+										}
+								}
+								if($desc_item_container == true) {
+									$main_content.='<b>Description:</b> '.$desc_item_container.'<br/>';
+								}
+								$main_content.=' <strong>Amount: </strong>'.$y->count .'\', \'\');" onMouseOut="$(\'#HelperDivContainer\').hide();" style="border:0px;" src="/images/items/'. $y->item_id .'.png" /></span></div>';
+							}
+						break;
+								$main_content.='</div></td></tr>';
+						}
+	}
+	$main_content.='</TABLE>
+							</div>
+								</div>											
+									<div class="TableShadowContainer">
+														<div class="TableBottomShadow" style="background-image:url(./layouts/tibiarl/images/content/table-shadow-bm.gif);">
+														<div class="TableBottomLeftShadow" style="background-image:url(./layouts/tibiarl/images/content/table-shadow-bl.gif);"></div>
+														<div class="TableBottomRightShadow" style="background-image:url(./layouts/tibiarl/images/content/table-shadow-br.gif);"></div>
+													</div>
+												</td>
+											</tr>
+										</tbody>
+									</table>
+								</div>
+							</td>
+						</tr>
+					</tbody>
+				</table>
+			</div><br>';
+		}else {
+		$main_content .='<table class="Table3" cellpadding="0" cellspacing="0">
+				<tbody>
+					<tr>
+						<td>
+							<div class="InnerTableContainer">
+								<table style="width:100%;">
+									<tbody>
+										<tr>
+											<td>
+												<div class="TableShadowContainerRightTop">
+													<div class="TableShadowRightTop" style="background-image:url(./layouts/tibiarl/images/content/table-shadow-rt.gif);"></div>
+												</div>
+												<div class="TableContentAndRightShadow" style="background-image:url(./layouts/tibiarl/images/content/table-shadow-rm.gif);">
+												<div class="TableContentContainer">
+													<table class="TableContent" width="100%" style="border:1px solid #faf0d7;" ><TR BGCOLOR="#505050"><TD CLASS=white><b><center>ID</center></b></TD><TD class="white"><b><center>#</center></b></TD><TD class="white"><b><center>Item Name</center></b></TD><TD class="white"><b><center>Player</center></b></TD><TD class="white"><b><center>Cost</center></b></td><TD class="white"><b><center>Buy</center></b></td></TR>
+			<tr>
+				<td colspan="7"><center>No Offers at the moment.</center></td>
+			</tr>';
+		$main_content.='</TABLE>
+								</div>
+									</div>
+										<div class="TableShadowContainer">
+														<div class="TableBottomShadow" style="background-image:url(./layouts/tibiarl/images/content/table-shadow-bm.gif);">
+														<div class="TableBottomLeftShadow" style="background-image:url(./layouts/tibiarl/images/content/table-shadow-bl.gif);"></div>
+														<div class="TableBottomRightShadow" style="background-image:url(./layouts/tibiarl/images/content/table-shadow-br.gif);"></div>
+													</div>
+												</td>
+											</tr>
+										</tbody>
+									</table>
+								</div>
+							</td>
+						</tr>
+					</tbody>
+				</table>
+			</div><br>';
+		}
+		$main_content.='<div class="pagination">
+			<div class="pagin"><a href="?subtopic=tradeoff&page='.$primeira_pagina.'">«';
+			/* Loop para montar a páginação central com os números */   
+		  for ($i=1; $i <= $range_final; $i++){
+		  $destaque = ($i == $pagina_atual) ? 'destaque' : '' ; 
+				$main_content.='
+				<a href="?subtopic=tradeoff&page='.$i.'">'.$i.'</a>';
+		  }
+		$main_content.='<a href="?subtopic=tradeoff&page='.$ultima_pagina.'"> »</a> 
+																						</div>
+																					</div>
+																<div style="clear: both;">
+															</div>';
+		}
+    ?> 

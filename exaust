@@ -1,0 +1,12 @@
+function Player.setExhaustion(self, time, storage)
+	return self:setStorageValue(storage, time + os.time())
+end
+
+function Player.getExhaustion(self, storage)
+	local storageExhaustion = self:getStorageValue(storage)
+	if storageExhaustion <= 0 then
+		return 0
+	end
+
+	return storageExhaustion - os.time()
+end

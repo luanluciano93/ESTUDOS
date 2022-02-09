@@ -40,5 +40,18 @@ JOGAR O LOCAL PARA DENTRO DO SCRIPT
 - TALK guild_broadcast.lua
 - TALK guild_points.lua
 - TALK war.lua
+- TALK online.lua
+- TALK looktype.lua
+- TALK ipban.lua
+- TALK create_item.lua
+- TALK ban.lua
+
+TESTAR O LOCAL DENTRO E FORA DA FUNÇÃO PRINCIPAL COM PRINT
+
+VERIFICAR O EXEVO FLAM HUR
 
 logCommand(player, words, param)
+
+- TALK alladdons.lua
+
+

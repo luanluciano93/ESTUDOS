@@ -10,3 +10,35 @@ function Player.getExhaustion(self, storage)
 
 	return storageExhaustion - os.time()
 end
+
+
+EXAUST UNICO
+data/movements/scripts/custom/boss_room_enter.lua 
+data/movements/scripts/custom/trainer_leave.lua
+data/movements/scripts/custom/trainer_enter.lua
+data/npc/scripts/bank.lua
+
+exaust talk
+
+data/talkactions/scripts/custom/save.lua
+
+colocar exaust no talk online.lua
+colocar exaust no talk aol.lua
+colocar exaust no talk bless.lua
+colocar exaust no talk war.lua
+colocar exaust no talk guild_points.lua
+colocar exaust no talk guild_broadcast.lua
+colocar exaust no talk spells.lua
+
+AJUSTAR exaust no talk znote_adminreport.lua
+
+JOGAR O LOCAL PARA DENTRO DO SCRIPT
+- TALK alladdons.lua
+- TALK aol.lua
+- TALK bless.lua
+- TALK buyhouse.lua
+- TALK guild_broadcast.lua
+- TALK guild_points.lua
+- TALK war.lua
+
+logCommand(player, words, param)

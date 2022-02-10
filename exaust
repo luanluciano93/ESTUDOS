@@ -55,3 +55,5 @@ logCommand(player, words, param)
 - TALK alladdons.lua
 
 
+COLOCA NO CUSTOM-CONFIG 
+- CREATURESCRIPT anti_mc.lua

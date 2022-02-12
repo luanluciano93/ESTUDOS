@@ -1,7 +1,32 @@
-local exhausted = 5 -- Segundos
+-- Revscript City War by luanluciano93 --
 
-function onSay(player, words, param)
+-- !citywar invite, city, frags, UE, RUNES AREA, SSA/Might, playersMax, Frontline, guildEnemy   / ex: !citywar invite, Carlin, 50, desativado, disabled, disabled, 50, disabled, Wicked
+-- !citywar accept, guildEnemy                                                                  / ex: !citywar accept, Wicked
+-- !citywar cancel, guildEnemy                                                                  / ex: !citywar cancel, Wicked
+-- !citywar go                                                                                  / ex: !citywar go
 
+local config = {
+	globalStorage_warInviteGuild = {1000, 1001},
+	globalStorage_warInviteEnemy = {1100, 1101},
+	globalStorage_warAtiveGuild = {1200, 1201},
+	globalStorage_warAtiveEnemy = {1300, 1301},
+}
+
+
+local function checkGlobalStorages(table, number)
+	if not type(table) == "table" or not tonumber(number) then
+		return false
+	end
+	for i = 1, #table do
+		if Game.getStorageValue(table[i]) == number then
+			return true
+		end
+	end
+	return false
+end
+
+local citywar_talkaction = TalkAction("!citywar")
+function citywar_talkaction.onSay(player, words, param)
 	local exhaustion = player:getExhaustion(Storage.exhaustion.talkaction)
 	if exhaustion > 0 then
 		player:sendTextMessage(MESSAGE_INFO_DESCR, "Você tem que esperar ".. exaust .. " segundos para usar novamente o comando.")
@@ -53,32 +78,18 @@ function onSay(player, words, param)
 		return false
 	end
 
-	if commandParam[1] == "invite" then
-
-		local resultId = db.storeQuery('SELECT `name`, `balance` FROM `guilds` WHERE `id` = ' .. guildId)
-		if not resultId then
-			return false
-		end
-
-		player:sendTextMessage(MESSAGE_STATUS_CONSOLE_RED, '[GUILD WAR] Current balance of guild ' .. result.getString(resultId, "name") .. ' is: ' .. result.getNumber(resultId, "balance") .. ' golds coins.')
-		result.free(resultId)
-		return false
-	end
-
 	if player:getLevel() < WarConfigs.WarMinLevel then
 		player:say("[CITY WAR] Para participar do citywar é necessário level ".. WarConfigs.WarMinLevel .." ou superior.", TALKTYPE_ORANGE_1)
 		player:getPosition():sendMagicEffect(CONST_ME_POFF)
 		return false
 	end
 
-	-- /citywar invite, city, frags, UE, RUNES AREA, SSA/Might, playersMax, Frontline, GuildContra
-	-- /citywar invite, Carlin, 50, desativado, disabled, disabled, 50, disabled, GuildContra
 	if commandParam[1] == "invite" then
 
 		if commandParam[2] then #########################
 			GetStorageCaseID = table.find(WarConfigs.WarCitys, string.lower(commandParam[2])) #########################
 		end #########################
-	
+
 		if player:getGuildLevel() < 3 then
 			player:sendTextMessage(MESSAGE_STATUS_CONSOLE_RED, '[CITY WAR] Você não é líder de uma guild para usar esse comando.')
 			player:getPosition():sendMagicEffect(CONST_ME_POFF)
@@ -156,8 +167,8 @@ function onSay(player, words, param)
 			return enemyId
 		end
 
-		local enemy = getEnemyId(commandParam[9])
-		if not enemy then
+		local enemyId = getEnemyId(commandParam[9])
+		if not enemyId then
 			player:sendTextMessage(MESSAGE_STATUS_CONSOLE_RED, '[CITY WAR] Oitavo parâmetro de invite inválido. A guild '.. commandParam[9] ..' não existe.')
 			player:getPosition():sendMagicEffect(CONST_ME_POFF)
 			return false
@@ -174,50 +185,115 @@ function onSay(player, words, param)
 			return enemyName
 		end
 
-		local enemyName = getEnemyName(enemy)
+		local enemyName = getEnemyName(enemyId)
 		local guildName = guild:getName()
 
-		if enemy == guildId or enemyName == guildName then
+		if enemyId == guildId or enemyName == guildName then
 			player:sendTextMessage(MESSAGE_STATUS_CONSOLE_RED, '[CITY WAR] Oitavo parâmetro de invite inválido. Você não pode invitar sua própria guilda para a guerra no citywar.')
 			player:getPosition():sendMagicEffect(CONST_ME_POFF)
 			return false
 		end
 
-		if guild:getMembersOnline() < WarConfigs.WarMinPlayersInGuild then
-			player:sendTextMessage(MESSAGE_STATUS_CONSOLE_RED, "[CITY WAR] Para invitar uma guerra no citywar, sua guild deve ter o mínimo de ".. WarConfigs.WarMinPlayersInGuild .." membros online.")
+		local validIpsTable = {}
+		for _, member in ipairs(guild:getMembersOnline()) do
+			if member then
+				local ipCount = 0
+				local ip = member:getIp()
+				if ip > 0 then
+					for i = 1, #validIpsTable do
+						if validIpsTable[i] then
+							if ip == validIpsTable[i] then
+								ipCount = ipCount + 1
+							end
+						end
+					end
+
+					if ipCount == 0 and config.checkDifferentIps then
+						table.insert(validIpsTable, ip)
+					end
+				end
+			end
+		end
+
+		if #validIpsTable < WarConfigs.WarMinPlayersInGuild then
+			player:sendTextMessage(MESSAGE_STATUS_CONSOLE_RED, "[CITY WAR] Para invitar uma guerra no citywar, sua guild deve ter o mínimo de ".. WarConfigs.WarMinPlayersInGuild .." membros online de IPS diferentes.")
 			player:getPosition():sendMagicEffect(CONST_ME_POFF)
 			return false
 		end
 
-		if enemy:getMembersOnline() < WarConfigs.WarMinPlayersInGuild then
-			player:sendTextMessage(MESSAGE_STATUS_CONSOLE_RED, "[CITY WAR] Para invitar uma guerra no citywar, a guild invitada deve ter o mínimo de ".. WarConfigs.WarMinPlayersInGuild .." membros online.")
+		local validIpsTableEnemy = {}
+		for _, member in ipairs(enemyId:getMembersOnline()) do
+			if member then
+				local ipCount = 0
+				local ip = member:getIp()
+				if ip > 0 then
+					for i = 1, #validIpsTableEnemy do
+						if validIpsTableEnemy[i] then
+							if ip == validIpsTableEnemy[i] then
+								ipCount = ipCount + 1
+							end
+						end
+					end
+
+					if ipCount == 0 and config.checkDifferentIps then
+						table.insert(validIpsTableEnemy, ip)
+					end
+				end
+			end
+		end
+
+		if validIpsTableEnemy < WarConfigs.WarMinPlayersInGuild then
+			player:sendTextMessage(MESSAGE_STATUS_CONSOLE_RED, "[CITY WAR] Para invitar uma guerra no citywar, a guild invitada deve ter o mínimo de ".. WarConfigs.WarMinPlayersInGuild .." membros online de IPS diferentes.")
 			player:getPosition():sendMagicEffect(CONST_ME_POFF)
 			return false
 		end
-	
-			--elseif getHavePlayersInGuildByGuildID(getPlayerGuildId(cid)) < WarConfigs.WarMinPlayersInGuild then
-				--player:sendTextMessage(MESSAGE_INFO_DESCR,"[War Anti Entrosa] Para convidar qualquerum de sua alianÃ§a deve ter o mÃ­nimo de ".. WarConfigs.WarMinPlayersInGuild .." membros.")
-			
-			--elseif getHavePlayersInGuildByGuildID(getGuildId(commandParam[9])) < WarConfigs.WarMinPlayersInGuild then
-				--player:sendTextMessage(MESSAGE_INFO_DESCR,"[War Anti Entrosa] A alianÃ§a estÃ¡ convidando vocÃª para uma guerra nÃ£o tem o mÃ­nimo de ".. WarConfigs.WarMinPlayersInGuild .." jogadores para iniciar a guerra.")
-			
-			--elseif not checkWarCitysIps(getPlayerGuildId(cid)) then
-				--player:sendTextMessage(MESSAGE_INFO_DESCR,"[War Anti Entrosa] Sua alianÃ§a nÃ£o cumpre os requisitos daf ".. WarConfigs.WarNeedDiferentIps .." diferente IPS.")
-			
-			--elseif not checkWarCitysIps(getPlayerGuildId(cid)) then
-				--player:sendTextMessage(MESSAGE_INFO_DESCR,"[War Anti Entrosa] A guilda que vocÃª convidou-o a guerra nÃ£o estÃ¡ em conformidade com os requisitos da ".. WarConfigs.WarNeedDiferentIps .." IPs diferentes para comeÃ§ar uma guerra.")
 
 		function checkActiveInviteInGuild(GuildID)
-			for i = 1, #WarConfigs["WarAcceptTimeArena"] do
+			for i = 1, #WarConfigs["WarAcceptTimeArena"] do -- Global Storages ["WarAcceptTimeArena"] = {73010, 73011, 73012, 73013, 73014, 73015, 73016, 73017},
 				if getGlobalStorageValue(WarConfigs["WarAcceptTimeArena"][i]) > os.time() then
-					if getGlobalStorageValue(WarConfigs["WarFirstGuildID"][i]) == GuildID then
+					if getGlobalStorageValue(WarConfigs["WarFirstGuildID"][i]) == GuildID then -- Global Storages ["WarFirstGuildID"] = {74020, 74021, 74022, 74023, 74024, 74025, 74026, 74027},
 						return true
 					end
 				end
 			end
 			return false
 		end
-			
+
+function checkActiveWarInGuild(GuildID)
+	for i = 1, #WarConfigs["WarArenaStorage"] do
+		if getGlobalStorageValue(WarConfigs["WarArenaStorage"][i]) > 0 then
+			if getGlobalStorageValue(WarConfigs["WarFirstGuildID"][i]) == GuildID or getGlobalStorageValue(WarConfigs["WarSecondGuildID"][i]) == GuildID then
+				return true
+			end
+		end
+	end
+	return false
+end
+
+		if checkGlobalStorages(config.globalStorage_warInviteGuild, guildId) then
+			player:sendTextMessage(MESSAGE_STATUS_CONSOLE_RED, "[CITY WAR] Sua guild já invitou uma guerra no citywar. Se não quiser aguarda-lá, cancele-a")
+			player:getPosition():sendMagicEffect(CONST_ME_POFF)
+			return false
+		end
+
+		if checkGlobalStorages(config.globalStorage_warInviteEnemy, guildId) then
+			player:sendTextMessage(MESSAGE_STATUS_CONSOLE_RED, "[CITY WAR] Sua guild tem um convite de guerra pendente no citywar. Se não for aceita-lo, cancele-o primeiramente.")
+			player:getPosition():sendMagicEffect(CONST_ME_POFF)
+			return false
+		end
+
+		if checkGlobalStorages(config.globalStorage_warAtiveGuild, guildId) or checkGlobalStorages(config.globalStorage_warAtiveEnemy, guildId) then
+			player:sendTextMessage(MESSAGE_STATUS_CONSOLE_RED, "[CITY WAR] Sua guild já está em uma guerra ativa no citywar.")
+			player:getPosition():sendMagicEffect(CONST_ME_POFF)
+			return false
+		end
+
+		if checkGlobalStorages(config.globalStorage_warAtiveGuild, enemyId) or checkGlobalStorages(config.globalStorage_warAtiveEnemy, enemyId) then
+			player:sendTextMessage(MESSAGE_STATUS_CONSOLE_RED, "[CITY WAR] A guild que vocÊ quer invitar já está em uma guerra ativa no citywar.")
+			player:getPosition():sendMagicEffect(CONST_ME_POFF)
+			return false
+		end
+
 			--elseif checkActiveWarInGuild(getPlayerGuildId(cid)) then
 				--player:sendTextMessage(MESSAGE_INFO_DESCR,"[War Anti Entrosa] Sua guild jÃ¡ estÃ¡ em guerra.")
 			
@@ -233,26 +309,61 @@ function onSay(player, words, param)
 				player:sendTextMessage(MESSAGE_INFO_DESCR,"[War Anti Entrosa] Essa guild ".. commandParam[9] .." jÃ¡ tem um convite ativo, aguarde.")
 			
 			Game.getStorageValue(key)
-			elseif getGlobalStorageValue(WarConfigs["WarAcceptTimeArena"][GetStorageCaseID]) > os.time() then
+			
+			elseif getGlobalStorageValue(WarConfigs["WarAcceptTimeArena"][GetStorageCaseID]) > os.time() then -- -- Global Storages ["WarAcceptTimeArena"] = {73010, 73011, 73012, 73013, 73014, 73015, 73016, 73017},
 				player:sendTextMessage(MESSAGE_INFO_DESCR,"[War Anti Entrosa] HÃ¡ uma chamada em andamento para a arena, aguarde a chamada terminar se o convite for aceito aguarde atÃ© o fim da guerra.")
 			
 			Game.getStorageValue(key)
-			elseif getGlobalStorageValue(WarConfigs["WarArenaStorage"][GetStorageCaseID]) > 0 then
+			elseif getGlobalStorageValue(WarConfigs["WarArenaStorage"][GetStorageCaseID]) > 0 then -- -- Global Storages  ["WarArenaStorage"] = {72000, 72001, 72002, 72003, 72004, 72005, 72006, 72007},
 				player:sendTextMessage(MESSAGE_INFO_DESCR,"[War Anti Entrosa] Arena jÃ¡ estÃ¡ em uso, espere terminar a guerra.")
 			
 			elseif #getOnlineGuildMembers(getGuildId(commandParam[9]), {3}) == 0 then
 				player:sendTextMessage(MESSAGE_INFO_DESCR,"[War Anti Entrosa] Nenhum dos lÃ­deres da alianÃ§a convidado estÃ¡ online.")
 			
+			
+			local function warSetOptions(EntryID, Param1, Param2, Param3, Param4, Param5, Param6, Param7, Param8, Param9, Param10)
+				if not ResetStats then
+					ResetStats = false
+				end
+				setGlobalStorageValue(WarConfigs["WarArenaStorage"][EntryID], Param1)
+				setGlobalStorageValue(WarConfigs["WarAcceptTimeArena"][EntryID], Param2)
+				setGlobalStorageValue(WarConfigs["WarFragsToFinish"][EntryID], Param3)
+				if Param4 == "disabled" then
+					setGlobalStorageValue(WarConfigs["WarUltimateExplosion"][EntryID], 1)
+				end
+				if Param5 == "disabled" then
+					setGlobalStorageValue(WarConfigs["WarAreaRunes"][EntryID], 1)
+				end
+				if Param6 == "enabled" then
+					setGlobalStorageValue(WarConfigs["WarDontSSAMight"][EntryID], 1)
+				end
+				setGlobalStorageValue(WarConfigs["WarMaxPlayerValue"][EntryID], Param7)
+				if Param8 == "enabled" then
+					setGlobalStorageValue(WarConfigs["WarLimitFrontLine"][EntryID], 1)
+				end
+				setGlobalStorageValue(WarConfigs["WarFirstGuildID"][EntryID], Param9)
+				setGlobalStorageValue(WarConfigs["WarSecondGuildID"][EntryID], Param10)
+			end			
+			
+			
 			else
 				warSetOptions(GetStorageCaseID, 0, os.time() + WarConfigs.WarAcceptTime, commandParam[3], commandParam[4], commandParam[5], commandParam[6], commandParam[7], commandParam[8], getPlayerGuildId(cid), getGuildId(commandParam[9]))
+				
+			function warBroadcastGuild(GuildID, MSGTYPE, MSG, GuildRankIDs)
+				for _, pid in pairs(getOnlineGuildMembers(GuildID, GuildRankIDs)) do
+					doPlayerSendTextMessage(pid, MSGTYPE, MSG)
+				end
+			end	
+							
 				warBroadcastGuild(getPlayerGuildId(cid), MESSAGE_EVENT_ADVANCE, "O lÃ­der da guilda convidou a guild, ".. commandParam[9] .." para uma guerra em ".. commandParam[2] .."!", {3})
 				warBroadcastGuild(getGuildId(commandParam[9]), MESSAGE_EVENT_ADVANCE, "".. getCreatureName(cid) .." da guild ".. getPlayerGuildName(cid) .." convidou sua guild para uma guerra em ".. commandParam[2] ..", para aceitar digite, !citywar accept ou /citywar accept, ".. getPlayerGuildName(cid) .."", {3})
-                
-				Game.broadcastMessage("", MESSAGE_STATUS_WARNING)
-				
-				doBroadcastMessage(getPlayerGuildName(cid) .. " Declarou guerra contra guild ".. commandParam[9] .." para ".. commandParam[3] .." mortes e ".. commandParam[7] .." VS ".. commandParam[7] ..", em ".. commandParam[2] .." no sistema WAR ANTI ENTROSA. O leader da guild rival recebeu informaÃ§Ãµes no Local Chat e Server Log sobre a guerra.", 19)
+
+				Game.broadcastMessage(getPlayerGuildName(cid) .. " Declarou guerra contra guild ".. commandParam[9] .." para ".. commandParam[3] .." mortes e ".. commandParam[7] .." VS ".. commandParam[7] ..", em ".. commandParam[2] .." no sistema WAR ANTI ENTROSA. O leader da guild rival recebeu informaÃ§Ãµes no Local Chat e Server Log sobre a guerra.", MESSAGE_STATUS_WARNING)
 				warBroadcastGuild(getGuildId(commandParam[9]), MESSAGE_STATUS_CONSOLE_BLUE, "OpÃ§Ã£o de Guerra: Cidade ".. commandParam[2] ..", frags ".. commandParam[3] ..", MÃ¡gias em Ã¡rea ".. commandParam[4] ..", Runas em Ã¡rea ".. commandParam[5] ..", DontSSAMight ".. commandParam[6] ..", ".. commandParam[7] .." jogadores por Guild.", {3})
 			end
+		
+		
+		
 		elseif string.lower(commandParam[1]) == "accept" then
 			if commandParam[2] then
 				getStorageEntry = seachGuildInStorages(getGuildId(commandParam[2]), getPlayerGuildId(cid))
@@ -302,9 +413,13 @@ function onSay(player, words, param)
 			else
 				executeEnterArena(cid, GetGuildAndEntryID[2], GetGuildAndEntryID[1])
 			end
-else
+		else
 			player:sendTextMessage(MESSAGE_INFO_DESCR,"[War Anti Entrosa] Insira primeiro os comandos corretamente, invite, accept ou go.")
 		end
 	end
-	return true
+
+	return false
 end
+
+citywar_talkaction:separator(" ")
+citywar_talkaction:register()

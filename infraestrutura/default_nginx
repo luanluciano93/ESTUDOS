@@ -1,0 +1,101 @@
+##
+# Você deve olhar para os seguintes URLs para obter uma compreensão sólida
+# de arquivos de configuração do Nginx para liberar totalmente o poder do Nginx.
+# https://www.nginx.com/resources/wiki/start/
+# https://www.nginx.com/resources/wiki/start/topics/tutorials/config_pitfalls/
+# https://wiki.debian.org/Nginx/DirectoryStructure
+#
+# Na maioria dos casos, os administradores removerão este arquivo de sites habilitados/ e
+# deixe como referência dentro dos sites-disponíveis onde continuará sendo
+# atualizado pela equipe de empacotamento do nginx.
+#
+# Este arquivo carregará automaticamente os arquivos de configuração fornecidos por outros
+# aplicativos, como Drupal ou Wordpress. Estas aplicações serão feitas
+# disponível abaixo de um caminho com esse nome de pacote, como /drupal8.
+#
+# Por favor, veja /usr/share/doc/nginx-doc/examples/ para exemplos mais detalhados.
+##
+
+# Configuração padrão do servidor
+#
+server {
+
+	listen 80 default_server;
+	listen [::]:80 default_server;
+
+	# configuração SSL
+
+	listen 443 ssl default_server;
+	listen [::]:443 ssl default_server;
+
+	# Nota: Você deve desabilitar o gzip para tráfego SSL.
+	# Veja: https://bugs.debian.org/773332
+	#
+	# Leia sobre ssl_ciphers para garantir uma configuração segura.
+	# Veja: https://bugs.debian.org/765782
+	#
+	# Certs autoassinados gerados pelo pacote ssl-cert
+	# Não os use em um servidor de produção!
+	#
+	# include snippets/snakeoil.conf;
+
+    # ssl_certificate /etc/ssl/certs/ssl-cert-snakeoil.pem;
+    # ssl_certificate_key /etc/ssl/private/ssl-cert-snakeoil.key;
+    # ssl_protocols TLSv1.2 TLSv1.3;
+    # ssl_prefer_server_ciphers off;
+    # ssl_ciphers TLS_AES_128_GCM_SHA256:TLS_AES_256_GCM_SHA384:TLS_CHACHA20_POLY1305_SHA256:ECDHE-ECDSA-AES128-GCM-SHA256:ECDHE-RSA-AES128-GCM-SHA256:ECDHE-ECDSA-AES256-GCM-SHA384:ECDHE-RSA-AES256-GCM-SHA384:ECDHE-ECDSA-CHACHA20-POLY1305:ECDHE-RSA-CHACHA20-POLY1305:DHE-RSA-AES128-GCM-SHA256:DHE-RSA-AES256-GCM-SHA384;
+    # ssl_ecdh_curve X25519:prime256v1:secp384r1;
+    # ssl_session_timeout 10m;
+    # ssl_session_cache shared:SSL:10m;
+    # ssl_session_tickets off;
+
+	root /home/otserv/www/html;
+
+	# Adicione index.php à lista se você estiver usando PHP
+	index index.html index.php index.htm index.nginx-debian.html;
+
+	server_name _;
+
+	location / {
+		# Primeiro tente servir a solicitação como arquivo, depois
+		# como diretório e, em seguida, volte a exibir um 404.
+		try_files $uri $uri/ =404;
+	}
+
+	# passa scripts PHP para o servidor FastCGI
+	#
+	#location ~ \.php$ {
+	#	include snippets/fastcgi-php.conf;
+	#
+	#   # Com php-fpm (ou outros soquetes unix):
+	#	fastcgi_pass unix:/var/run/php/php7.4-fpm.sock;
+	#   # Com php-cgi (ou outros soquetes tcp):
+	#	fastcgi_pass 127.0.0.1:9000;
+	#}
+
+	# nega acesso a arquivos .htaccess, se o documento raiz do Apache
+	# concorda com o do nginx
+	#
+	#location ~ /\.ht {
+	#	deny all;
+	#}
+}
+
+# Configuração de Host Virtual para example.com
+#
+# Você pode mover isso para um arquivo diferente em sites-available/ e criar um link simbólico que
+# para sites-enabled/ para habilitá-lo.
+#
+#server {
+#	listen 80;
+#	listen [::]:80;
+#
+#	server_name example.com;
+#
+#	root /var/www/example.com;
+#	index index.html;
+#
+#	location / {
+#		try_files $uri $uri/ =404;
+#	}
+#}

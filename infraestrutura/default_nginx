@@ -24,10 +24,10 @@ server {
 	listen [::]:80 default_server;
 
 	# configuração SSL
-
-	listen 443 ssl default_server;
-	listen [::]:443 ssl default_server;
-
+	#
+	# listen 443 ssl default_server;
+	# listen [::]:443 ssl default_server;
+	#
 	# Nota: Você deve desabilitar o gzip para tráfego SSL.
 	# Veja: https://bugs.debian.org/773332
 	#

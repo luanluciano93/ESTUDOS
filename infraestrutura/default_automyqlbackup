@@ -1,0 +1,89 @@
+# Por padrão, a versão Debian do automysqlbackup usará:
+# mysqldump --defaults-file=/etc/mysql/debian.cnf
+# mas você pode querer substituir por um usuário específico e passar.
+# Para isso, basta editar abaixo.
+
+# Nome de usuário para acessar o servidor MySQL, por exemplo: dbuser
+#USERNAME=`grep user /etc/mysql/debian.cnf | tail -n 1 | cut -d"=" -f2 | awk '{print $1}'`
+
+# Nome de usuário para acessar o servidor MySQL, por exemplo: senha
+#PASSWORD=`grep password /etc/mysql/debian.cnf | tail -n 1 | cut -d"=" -f2 | awk '{print $1}'`
+
+# Nome do host (ou endereço IP) do servidor MySQL, por exemplo: localhost
+DBHOST=localhost
+
+# Lista de DBNAMES para backup diário/semanal, por exemplo "DB1 DB2 DB3"
+# Note que é absolutamente normal que o db chamado "mysql" não esteja neste
+# list, pois é adicionado posteriormente pelo script. Veja as diretivas MDBNAMES abaixo
+# neste arquivo (opções avançadas).
+# Este é APENAS um padrão conveniente, se você não gosta, não reclame
+# e escreva o seu.
+# O seguinte é um hack rápido que encontrará os nomes dos bancos de dados por
+# lendo o conteúdo da pasta mysql. Sinta-se à vontade para substituir por outra coisa.
+# DBNAMES=`find /var/lib/mysql -mindepth 1 -maxdepth 1 -type d | corte -d'/' -f5 | grep -v ^mysql\$ | tr\\\r\\\n ,\ `
+# Este faz uma lista de dbs usando uma instrução MySQL.
+
+DBNAMES=`mysql --defaults-file=/etc/mysql/debian.cnf --execute="SHOW DATABASES" | awk '{print $1}' | grep -v ^Database$ | grep -v ^mysql$ | grep -v ^performance_schema$ | grep -v ^information_schema$ | tr \\\r\\\n ,\ `
+
+# Local do diretório de backup, por exemplo, /backups
+# Pastas dentro desta serão criadas (diariamente, semanalmente, etc.), e as
+# subpastas serão nomes de banco de dados. Observe que os backups serão de propriedade de
+# root, com direitos Unix 0600.
+BACKUPDIR="/var/lib/automysqlbackup"
+
+# Configuração de e-mail
+# O que você gostaria que fosse enviado para você?
+# - log : envia apenas arquivo de log
+# - arquivos : envia arquivo de log e arquivos sql como anexos (consulte a documentação)
+# - stdout : simplesmente exibirá o log na tela se for executado manualmente.
+# - quiet : Enviar logs somente se ocorrer um erro no MAILADDR.
+MAILCONTENT="quiet"
+
+# Defina o tamanho máximo de e-mail permitido em k. (4000 = aproximadamente 5 MB de e-mail [consulte documentos])
+MAXATTSIZE="4000"
+
+# Endereço de e-mail para o qual enviar e-mails? (usuário@domínio.com)
+MAILADDR="root"
+
+# ======================================================================
+# === OPÇÕES AVANÇADAS (Leia os documentos abaixo para mais detalhes) ==
+#=======================================================================
+
+# Lista de DBBNAMES para Backups Mensais.
+MDBNAMES="mysql $DBNAMES"
+
+# Lista de DBNAMES para EXLUCDE se DBNAMES estiver definido para todos (deve estar entre " aspas)
+DBEXCLUDE=""
+
+# Incluir CREATE DATABASE no backup?
+CREATE_DATABASE=yes
+
+# Diretório e arquivo de backup separado para cada banco de dados? (sim ou não)
+SEPDIR=yes
+
+# Em qual dia você deseja backups semanais? (1 a 7 onde 1 é segunda-feira)
+DOWEEKLY=6
+
+# Escolha o tipo de compactação. (gzip ou bzip2)
+COMP=gzip
+
+# Comprimir as comunicações entre o servidor de backup e o servidor MySQL?
+COMMCOMP=no
+
+# Além disso, mantenha uma cópia do backup mais recente em um diretório.
+LATEST=no
+
+# O tamanho máximo do buffer para comunicação cliente/servidor. por exemplo. 16 MB (máximo é 1GB)
+MAX_ALLOWED_PACKET=
+
+# Para conexões com localhost. Às vezes, o arquivo de soquete Unix deve ser Sspecificadas.
+SOCKET=
+
+# Comando para executar antes dos backups (descomente para usar)
+#PREBACKUP="/etc/mysql-backup-pre"
+
+# Comando executado após backups (descomente para usar)
+#POSTBACKUP="/etc/mysql-backup-post"
+
+# Backup de procedimentos e rotinas armazenados (comentário para remover)
+ROUTINES=yes

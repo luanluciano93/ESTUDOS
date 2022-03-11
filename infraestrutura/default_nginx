@@ -38,10 +38,10 @@ server {
 	#
 	# include snippets/snakeoil.conf;
 
-	root /var/www/html;
+	root /home/otserv/www;
 
 	# Adicione index.php à lista se você estiver usando PHP
-	index index.html index.htm index.nginx-debian.html;
+	index index.php index.html index.htm index.nginx-debian.html;
 
 	server_name _;
 
@@ -53,14 +53,15 @@ server {
 
 	# passa scripts PHP para o servidor FastCGI
 	#
-	#location ~ \.php$ {
-	#	include snippets/fastcgi-php.conf;
-	#
-	#   # Com php-fpm (ou outros soquetes unix):
-	#	fastcgi_pass unix:/var/run/php/php7.4-fpm.sock;
-	#   # Com php-cgi (ou outros soquetes tcp):
-	#	fastcgi_pass 127.0.0.1:9000;
-	#}
+	location ~ \.php$ {
+		include snippets/fastcgi-php.conf;
+
+		# Com php-fpm (ou outros soquetes unix):
+		fastcgi_pass unix:/var/run/php/php7.4-fpm.sock;
+		
+		# Com php-cgi (ou outros soquetes tcp):
+		# fastcgi_pass 127.0.0.1:9000;
+	}
 
 	# nega acesso a arquivos .htaccess, se o documento raiz do Apache
 	# concorda com o do nginx

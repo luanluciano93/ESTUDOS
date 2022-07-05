@@ -20,7 +20,7 @@ DBHOST=localhost
 # e escreva o seu.
 # O seguinte é um hack rápido que encontrará os nomes dos bancos de dados por
 # lendo o conteúdo da pasta mysql. Sinta-se à vontade para substituir por outra coisa.
-# DBNAMES=`find /var/lib/mysql -mindepth 1 -maxdepth 1 -type d | corte -d'/' -f5 | grep -v ^mysql\$ | tr\\\r\\\n ,\ `
+# DBNAMES=`find /var/lib/mysql -mindepth 1 -maxdepth 1 -type d | cut -d'/' -f5 | grep -v ^mysql\$ | tr \\\r\\\n ,\ `
 # Este faz uma lista de dbs usando uma instrução MySQL.
 
 DBNAMES=`mysql --defaults-file=/etc/mysql/debian.cnf --execute="SHOW DATABASES" | awk '{print $1}' | grep -v ^Database$ | grep -v ^mysql$ | grep -v ^performance_schema$ | grep -v ^information_schema$ | tr \\\r\\\n ,\ `
@@ -34,12 +34,13 @@ BACKUPDIR="/var/lib/automysqlbackup"
 # Configuração de e-mail
 # O que você gostaria que fosse enviado para você?
 # - log : envia apenas arquivo de log
-# - arquivos : envia arquivo de log e arquivos sql como anexos (consulte a documentação)
+# - files : envia arquivo de log e arquivos sql como anexos (consulte a documentação)
 # - stdout : simplesmente exibirá o log na tela se for executado manualmente.
 # - quiet : Enviar logs somente se ocorrer um erro no MAILADDR.
 MAILCONTENT="quiet"
 
 # Defina o tamanho máximo de e-mail permitido em k. (4000 = aproximadamente 5 MB de e-mail [consulte documentos])
+		
 MAXATTSIZE="4000"
 
 # Endereço de e-mail para o qual enviar e-mails? (usuário@domínio.com)
@@ -64,19 +65,29 @@ SEPDIR=yes
 # Em qual dia você deseja backups semanais? (1 a 7 onde 1 é segunda-feira)
 DOWEEKLY=6
 
+# Qual dia do mês para executar o backup mensal (00 = sem backup mensal)
+# Necessário dois dígitos
+DOMONTHLY=01
+
 # Escolha o tipo de compactação. (gzip ou bzip2)
 COMP=gzip
+
+# Comprimir backups em tempo real com gzip ou bzip2 (sim ou não)
+COMPDIRECT=no
 
 # Comprimir as comunicações entre o servidor de backup e o servidor MySQL?
 COMMCOMP=no
 
 # Além disso, mantenha uma cópia do backup mais recente em um diretório.
+			
 LATEST=no
 
 # O tamanho máximo do buffer para comunicação cliente/servidor. por exemplo. 16 MB (máximo é 1GB)
+				   
 MAX_ALLOWED_PACKET=
 
 # Para conexões com localhost. Às vezes, o arquivo de soquete Unix deve ser Sspecificadas.
+			 
 SOCKET=
 
 # Comando para executar antes dos backups (descomente para usar)
@@ -87,3 +98,6 @@ SOCKET=
 
 # Backup de procedimentos e rotinas armazenados (comentário para remover)
 ROUTINES=yes
+
+# Opção adicional do Mysqldump (como "--single-transaction")
+OPTIONS=""

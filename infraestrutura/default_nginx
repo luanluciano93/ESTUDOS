@@ -38,7 +38,7 @@ server {
 	#
 	# include snippets/snakeoil.conf;
 
-	root /home/otserv/www;
+	root /home/www;
 
 	# Adicione index.php à lista se você estiver usando PHP
 	index index.php index.html index.htm index.nginx-debian.html;
@@ -57,7 +57,7 @@ server {
 		include snippets/fastcgi-php.conf;
 
 		# Com php-fpm (ou outros soquetes unix):
-		fastcgi_pass unix:/var/run/php/php7.4-fpm.sock;
+		fastcgi_pass unix:/run/php/php8.1-fpm.sock;
 		
 		# Com php-cgi (ou outros soquetes tcp):
 		# fastcgi_pass 127.0.0.1:9000;
@@ -70,6 +70,7 @@ server {
 	#	deny all;
 	#}
 }
+
 
 # Configuração de Host Virtual para example.com
 #

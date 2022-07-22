@@ -1,36 +1,36 @@
 ##
-# Você deve olhar para os seguintes URLs para obter uma compreensão sólida
-# de arquivos de configuração do Nginx para liberar totalmente o poder do Nginx.
+# Voce deve olhar para os seguintes URLs para obter uma compreensao solida
+# de arquivos de configuracao do Nginx para liberar totalmente o poder do Nginx.
 # https://www.nginx.com/resources/wiki/start/
 # https://www.nginx.com/resources/wiki/start/topics/tutorials/config_pitfalls/
 # https://wiki.debian.org/Nginx/DirectoryStructure
 #
-# Na maioria dos casos, os administradores removerão este arquivo de sites habilitados/ e
-# deixe como referência dentro dos sites-disponíveis onde continuará sendo
+# Na maioria dos casos, os administradores removerao este arquivo de sites habilitados/ e
+# deixe como referencia dentro dos sites-disponiveis onde continuara sendo
 # atualizado pela equipe de empacotamento do nginx.
 #
-# Este arquivo carregará automaticamente os arquivos de configuração fornecidos por outros
-# aplicativos, como Drupal ou Wordpress. Estas aplicações serão feitas
-# disponível abaixo de um caminho com esse nome de pacote, como /drupal8.
+# Este arquivo carregara automaticamente os arquivos de configuracao fornecidos por outros
+# aplicativos, como Drupal ou Wordpress. Estas aplicacoes serao feitas
+# disponivel abaixo de um caminho com esse nome de pacote, como /drupal8.
 #
 # Por favor, veja /usr/share/doc/nginx-doc/examples/ para exemplos mais detalhados.
 ##
 
-# Configuração padrão do servidor
+# Configuracao padrao do servidor
 #
 server {
 	listen 80 default_server;
 	listen [::]:80 default_server;
 
-	# configuração SSL
+	# configuracao SSL
 	#
 	# listen 443 ssl default_server;
 	# listen [::]:443 ssl default_server;
 	#
-	# Nota: Você deve desabilitar o gzip para tráfego SSL.
+	# Nota: Voce deve desabilitar o gzip para trafego SSL.
 	# Veja: https://bugs.debian.org/773332
 	#
-	# Leia sobre ssl_ciphers para garantir uma configuração segura.
+	# Leia sobre ssl_ciphers para garantir uma configuracao segura.
 	# Veja: https://bugs.debian.org/765782
 	#
 	# Certs autoassinados gerados pelo pacote ssl-cert
@@ -40,14 +40,14 @@ server {
 
 	root /home/www;
 
-	# Adicione index.php à lista se você estiver usando PHP
+	# Adicione index.php a lista se você estiver usando PHP
 	index index.php index.html index.htm index.nginx-debian.html;
 
 	server_name _;
 
 	location / {
-		# Primeiro tente servir a solicitação como arquivo, depois
-		# como diretório e, em seguida, volte a exibir um 404.
+		# Primeiro tente servir a solicitacao como arquivo, depois
+		# como diretorio e, em seguida, volte a exibir um 404.
 		try_files $uri $uri/ =404;
 	}
 
@@ -72,10 +72,10 @@ server {
 }
 
 
-# Configuração de Host Virtual para example.com
+# Configuracao de Host Virtual para example.com
 #
-# Você pode mover isso para um arquivo diferente em sites-available/ e criar um link simbólico que
-# para sites-enabled/ para habilitá-lo.
+# Voce pode mover isso para um arquivo diferente em sites-available/ e criar um link simbolico que
+# para sites-enabled/ para habilita-lo.
 #
 #server {
 #	listen 80;

@@ -1,69 +1,82 @@
+function:[[
+      if not x then
+              x = 0
+      end
+      x = x + 1
+      return true
+]]
+
 say:!bless
+
 function:[[
-if player:getFreeCapacity() > 5000 then
-      gotoLabel("up")
-end
-return true
+      if x < 5 then
+            gotoLabel("up")
+      end
+      return true
 ]]
 
 goto:1606,531,8
 goto:1606,531,8
-goto:1168,158,6
-goto:1157,158,6
-goto:1148,156,6
-goto:1148,154,6
-goto:1148,154,6
-goto:1036,164,7
-goto:1050,164,7
-goto:1056,159,7
+goto:1175,156,6
+goto:1164,158,6
+goto:1151,158,6
+goto:1152,160,6
 
 function:[[
--- vender todos os items
-local npc = getCreatureByName("Item Buyer")
-if not npc then 
-  return false 
-end
+      -- vender todos os items
+      local npc = getCreatureByName("Item Buyer")
+      if not npc then 
+        return false 
+      end
 
-if retries > 10 then
-  return false
-end
+      if retries > 10 then
+        return false
+      end
 
-local pos = player:getPosition()
-local npcPos = npc:getPosition()
-if math.max(math.abs(pos.x - npcPos.x), math.abs(pos.y - npcPos.y)) > 3 then
-  autoWalk(npcPos, {precision=3})
-  delay(300)
-  return "retry"
-end
+      local pos = player:getPosition()
+      local npcPos = npc:getPosition()
 
-if not NPC.isTrading() then
-  NPC.say("hi")
-  NPC.say("trade")
-  delay(200)
-  return "retry"
-end
+      if math.max(math.abs(pos.x - npcPos.x), math.abs(pos.y - npcPos.y)) > 3 then
+        autoWalk(npcPos, {precision=3})
+        delay(300)
+        return "retry"
+      end
 
-NPC.sellAll()
-schedule(1000, function()
-  NPC.sellAll()
-  NPC.closeTrade()
-  NPC.say("bye")
-end)
-delay(1200)
+      if not NPC.isTrading() then
+        NPC.say("hi")
+        NPC.say("trade")
+        delay(200)
+        return "retry"
+      end
 
-return true
+      NPC.sellAll()
+      schedule(1000, function()
+        NPC.sellAll()
+        NPC.closeTrade()
+        NPC.say("bye")
+      end)
+
+      delay(1200)
+      return true
 ]]
 
-goto:1048,165,7
-goto:1034,165,7
-goto:1024,159,7
-goto:1024,159,7
-goto:1157,158,6
+goto:1152,160,6
+goto:1160,158,6
+goto:1171,156,6
+goto:1176,155,6
 goto:1176,153,6
 goto:1176,153,6
+goto:1512,573,7
 goto:1512,574,7
 goto:1512,574,7
-goto:1611,533,8
+
+function:[[
+      if x > 5 then
+            x = 0
+      end
+      return true
+]]
+
 label:up
 goto:1610,532,8
 goto:1616,529,8
@@ -207,16 +220,11 @@ goto:1618,518,8
 goto:1618,524,8
 goto:1612,525,8
 goto:1611,531,8
+goto:976,250,7
+goto:976,250,7
+goto:1643,489,7
 
 config:{"useDelay":400,"mapClickDelay":100,"walkDelay":10,"ping":100,"ignoreFields":true,"skipBlocked":true,"mapClick":true}
-
 extensions:[[
-{
-  "Depositer": [
-
-  ],
-  "Supply": [
-
-  ]
-}
+      {"Depositer": [], "Supply": []}
 ]]

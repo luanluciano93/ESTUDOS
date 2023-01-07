@@ -1,6 +1,6 @@
 -----------------------   AUTO SD   --------------------------------
 
-autoSDMacro = macro(200, "SD", function()
+autoSDMacro = macro(1000, "SD", function()
 	local target = g_game.getAttackingCreature()
 	if target then
 		local sd = findItem(3155)
@@ -60,9 +60,11 @@ icon2:setText("100")
 
 -----------------------   UTITO TEMPO   --------------------------------
 
-utitoTempoMacro = macro(100, 'Utito Tempo', function()
+utitoTempoMacro = macro(1000, 'Utito Tempo', function()
 	if not hasPartyBuff() and not isInPz() then
-		say('utito tempo')
+		if manapercent() > 75 then
+			say('utito tempo')
+		end
 	end
 end)
 
@@ -73,7 +75,7 @@ icon3:setText("100")
 
 -----------------------   POTION EXP   --------------------------------
 
-expPotionMacro = macro(10000, 'Potion XP', function()
+expPotionMacro = macro(30000, 'Potion XP', function()
 	local item = findItem(11980)
 	if item and g_game.isAttacking() then
 		use(11980)
@@ -88,7 +90,7 @@ icon4:setText("100")
 -----------------------   EK ATTACK   --------------------------------
 
 ekAttackMacro = macro(1000, "EK ATTACK", function()
-	if g_game.isAttacking() then
+	if manapercent() > 75 and g_game.isAttacking() then
 		if getMonsters(1) > 2 then
 			say("exori gran")
 		else
@@ -108,7 +110,7 @@ local horas = 40
 
 staminaRestoreMacro = macro(30000, "Stamina", function()
 	if not isInPz() and stamina() < (horas * 60) then
-		use(11588)
+		use(11372)
 	end
 end)
 
@@ -119,7 +121,7 @@ icon6:setText("100")
 
 -----------------------   EXP BOOSTER   --------------------------------
 
-expBoosterMacro = macro(10000, "Exp Booster", function()
+expBoosterMacro = macro(30000, "Exp Booster", function()
 	local boosterIdInative = 3997
 	local boosterIdAtive = 4010
 	local ativado = findItem(boosterIdAtive)

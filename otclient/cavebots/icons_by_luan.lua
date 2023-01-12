@@ -14,7 +14,7 @@ end)
 
 icon1 = addIcon("SD", {item = 3155}, autoSDMacro)
 icon1:breakAnchors()
-icon1:move(210, 100)
+icon1:move(260, 100)
 icon1:setText("100")
 
 -----------------------   ANTI-PUSH   --------------------------------
@@ -63,24 +63,28 @@ icon2:setText("100")
 -----------------------   UTITO TEMPO   --------------------------------
 
 utitoTempoMacro = macro(3000, 'Utito Tempo', function()
-	if not hasPartyBuff() and not isInPz() then
-		if manapercent() > 75 then
-			say('utito tempo')
+	if hppercent() > 70 then
+		if not hasPartyBuff() and not isInPz() then
+			if manapercent() > 75 then
+				say('utito tempo')
+			end
 		end
 	end
 end)
 
 icon3 = addIcon("Utito Tempo", {item = 12246}, utitoTempoMacro)
 icon3:breakAnchors()
-icon3:move(210, 200)
+icon3:move(260, 200)
 icon3:setText("100")
 
 -----------------------   POTION EXP   --------------------------------
 
 expPotionMacro = macro(30000, 'Potion XP', function()
-	local item = findItem(11980)
-	if item and g_game.isAttacking() then
-		use(11980)
+	if hppercent() > 70 then
+		local item = findItem(11980)
+		if item and g_game.isAttacking() then
+			use(11980)
+		end
 	end
 end)
 
@@ -92,18 +96,20 @@ icon4:setText("100")
 -----------------------   EK ATTACK   --------------------------------
 
 ekAttackMacro = macro(1000, "EK ATTACK", function()
-	if manapercent() > 75 and g_game.isAttacking() then
-		if getMonsters(1) > 2 then
-			say("exori gran")
-		else
-			say("exori hur")
+	if hppercent() > 70 then
+		if manapercent() > 75 and g_game.isAttacking() then
+			if getMonsters(1) > 1 then
+				say("exori gran")
+			else
+				say("exori hur")
+			end
 		end
 	end
 end)
 
 icon5 = addIcon("EK ATK", {item = 11951}, ekAttackMacro)
 icon5:breakAnchors()
-icon5:move(260, 200)
+icon5:move(310, 200)
 icon5:setText("100")
 
 -----------------------   STAMINA RESTORE   --------------------------------
@@ -111,8 +117,10 @@ icon5:setText("100")
 local horas = 40
 
 staminaRestoreMacro = macro(30000, "Stamina", function()
-	if not isInPz() and stamina() < (horas * 60) then
-		use(11372)
+	if hppercent() > 70 then
+		if not isInPz() and stamina() < (horas * 60) then
+			use(11372)
+		end
 	end
 end)
 
@@ -124,11 +132,13 @@ icon6:setText("100")
 -----------------------   EXP BOOSTER   --------------------------------
 
 expBoosterMacro = macro(30000, "Exp Booster", function()
-	local boosterIdInative = 3997
-	local boosterIdAtive = 4010
-	local ativado = findItem(boosterIdAtive)
-	if not ativado and not isInPz() and g_game.isAttacking() then
-		use(boosterIdInative)
+	if hppercent() > 70 then
+		local boosterIdInative = 3997
+		local boosterIdAtive = 4010
+		local ativado = findItem(boosterIdAtive)
+		if not ativado and not isInPz() and g_game.isAttacking() then
+			use(boosterIdInative)
+		end
 	end
 end)
 
@@ -142,7 +152,7 @@ icon7:setText("100")
 local minPercentHP = 90
 local minPercentMANA = 85
 
-healMageMacro = macro(100, "HEAL", function()
+healMageMacro = macro(100, "HEAL MAGE", function()
 	if hppercent() < minPercentHP then
 		say("exura vita")
 	else
@@ -152,7 +162,27 @@ healMageMacro = macro(100, "HEAL", function()
 	end
 end)
 
-icon8 = addIcon("HEAL", {item = 3162}, healMageMacro)
+icon8 = addIcon("HEAL MAGE", {item = 3162}, healMageMacro)
 icon8:breakAnchors()
 icon8:move(210, 100)
 icon8:setText("100")
+
+-----------------------   HEAL EK   --------------------------------
+
+local ekMinPercentHP = 70
+local ekMinPercentMANA = 90
+
+healEkMacro = macro(100, "HEAL EK", function()
+	if hppercent() < ekMinPercentHP then
+		g_game.useInventoryItemWith(3163, player)
+	else
+		if manapercent() < ekMinPercentMANA then
+			g_game.useInventoryItemWith(3163, player)
+		end
+	end
+end)
+
+icon9 = addIcon("HEAL EK", {item = 3163}, healEkMacro)
+icon9:breakAnchors()
+icon9:move(210, 200)
+icon9:setText("100")

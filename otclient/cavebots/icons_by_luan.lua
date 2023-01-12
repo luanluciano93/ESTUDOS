@@ -152,7 +152,7 @@ healMageMacro = macro(100, "HEAL", function()
 	end
 end)
 
-icon1 = addIcon("HEAL", {item = 3162}, healMageMacro)
-icon1:breakAnchors()
-icon1:move(210, 100)
-icon1:setText("100")
+icon8 = addIcon("HEAL", {item = 3162}, healMageMacro)
+icon8:breakAnchors()
+icon8:move(210, 100)
+icon8:setText("100")

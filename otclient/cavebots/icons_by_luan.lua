@@ -1,16 +1,18 @@
 -----------------------   AUTO SD   --------------------------------
 
 autoSDMacro = macro(1000, "SD", function()
-	local target = g_game.getAttackingCreature()
-	if target then
-		local sd = findItem(3155)
-		if sd then
-			g_game.useWith(sd, target)
+	if hppercent() > 90 and manapercent() > 80 then
+		local target = g_game.getAttackingCreature()
+		if target then
+			local sd = findItem(3155)
+			if sd then
+				g_game.useWith(sd, target)
+			end
 		end
 	end
 end)
 
-icon1 = addIcon("SD", {item =3155}, autoSDMacro)
+icon1 = addIcon("SD", {item = 3155}, autoSDMacro)
 icon1:breakAnchors()
 icon1:move(210, 100)
 icon1:setText("100")
@@ -24,7 +26,7 @@ local dropItems = {
 
 local maxStackedItems = 10
 
-gpAntiPushDrop = macro(100 , "anti push", function ()
+gpAntiPushDrop = macro(150 , "anti push", function ()
 	antiPush()
 end)
 
@@ -60,7 +62,7 @@ icon2:setText("100")
 
 -----------------------   UTITO TEMPO   --------------------------------
 
-utitoTempoMacro = macro(1000, 'Utito Tempo', function()
+utitoTempoMacro = macro(3000, 'Utito Tempo', function()
 	if not hasPartyBuff() and not isInPz() then
 		if manapercent() > 75 then
 			say('utito tempo')
@@ -134,3 +136,23 @@ icon7 = addIcon("Exp Booster", {item = 3997}, expBoosterMacro)
 icon7:breakAnchors()
 icon7:move(310, 300)
 icon7:setText("100")
+
+-----------------------   HEAL MAGE   --------------------------------
+
+local minPercentHP = 90
+local minPercentMANA = 85
+
+healMageMacro = macro(100, "HEAL", function()
+	if hppercent() < minPercentHP then
+		say("exura vita")
+	else
+		if manapercent() < minPercentMANA then
+			g_game.useInventoryItemWith(3162, player)
+		end
+	end
+end)
+
+icon1 = addIcon("HEAL", {item = 3162}, healMageMacro)
+icon1:breakAnchors()
+icon1:move(210, 100)
+icon1:setText("100")

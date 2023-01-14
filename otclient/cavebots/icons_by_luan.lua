@@ -186,3 +186,18 @@ icon9 = addIcon("HEAL EK", {item = 3163}, healEkMacro)
 icon9:breakAnchors()
 icon9:move(210, 200)
 icon9:setText("100")
+
+-----------------------   ED ATTACK   --------------------------------
+
+edAttackMacro = macro(1000, "ED ATTACK", function()
+  if hppercent() > 90 then
+    if manapercent() > 75 and g_game.isAttacking() then
+        say("demonic pox")
+    end
+  end
+end)
+
+icon10 = addIcon("ED ATK", {item = 13501}, edAttackMacro)
+icon10:breakAnchors()
+icon10:move(310, 100)
+icon10:setText("100")

@@ -190,14 +190,58 @@ icon9:setText("100")
 -----------------------   ED ATTACK   --------------------------------
 
 edAttackMacro = macro(1000, "ED ATTACK", function()
-  if hppercent() > 90 then
-    if manapercent() > 75 and g_game.isAttacking() then
-        say("demonic pox")
-    end
-  end
+	if hppercent() > 90 then
+		if manapercent() > 75 and g_game.isAttacking() then
+			say("demonic pox")
+		end
+	end
 end)
 
 icon10 = addIcon("ED ATK", {item = 13501}, edAttackMacro)
 icon10:breakAnchors()
 icon10:move(310, 100)
 icon10:setText("100")
+
+-----------------------   OBSIDIAN KNIFE   --------------------------------
+
+local itemIdKnife = 5908
+local corposQueUsamAKnife = {3090, 5969, 2871, 5982, 2866, 5981, 2876, 5983, 4259, 6040, 4262, 6041, 4256, 4251, 11285, 11288, 11277, 11280, 11280, 11269, 11272, 11281, 11284, 3104, 5973, 2881, 5984, 2931, 5999, 3031, 6030, 11343}
+
+obsidianKnifeMacro = macro(500, "OB. KNIFE", function()
+	if hppercent() > 50 then
+		for i, tile in ipairs(g_map.getTiles(posz())) do
+			for u, item in ipairs(tile:getItems()) do
+				if table.find(corposQueUsamAKnife, item:getId()) then
+					useWith(itemIdKnife, item)
+				end
+			end
+		end
+	end
+end)
+
+icon11 = addIcon("OB. KNIFE", {item = itemIdKnife}, obsidianKnifeMacro)
+icon11:breakAnchors()
+icon11:move(210, 500)
+icon11:setText("100")
+
+-----------------------   BLESSED WOODEN STAKE   --------------------------------
+
+local itemIdStake = 5942
+local corposQueUsamAStake = {2916, 5995, 2956, 6006, 9654, 9660}
+
+blessedStakeMacro = macro(500, "BLESSED STAKE", function()
+	if hppercent() > 50 then
+		for i, tile in ipairs(g_map.getTiles(posz())) do
+			for u, item in ipairs(tile:getItems()) do
+				if table.find(corposQueUsamAStake, item:getId()) then
+					useWith(itemIdStake, item)
+				end
+			end
+		end
+	end
+end)
+
+icon12 = addIcon("BLESSED STAKE", {item = itemIdStake}, blessedStakeMacro)
+icon12:breakAnchors()
+icon12:move(260, 500)
+icon12:setText("100")

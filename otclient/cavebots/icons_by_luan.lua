@@ -1,18 +1,24 @@
+-- configure o heal do seu char ...
+-- se for MAGE, indico a deixar 90 de life e 80 de mana (baseado na holy mana rune)
+-- se for EK, indico a deixar 70 de life e 85 de mana (baseado na holy life rune)
+
+local lifeHealBot = 90
+local manaHealBot = 80
+
 -----------------------   AUTO SD   --------------------------------
 
+local itemIdSd = 3155
+
 autoSDMacro = macro(1000, "SD", function()
-	if hppercent() > 90 and manapercent() > 80 then
+	if hppercent() > lifeHealBot and manapercent() > manaHealBot then
 		local target = g_game.getAttackingCreature()
 		if target then
-			local sd = findItem(3155)
-			if sd then
-				g_game.useWith(sd, target)
-			end
+			g_game.useWith(itemIdSd, target)
 		end
 	end
 end)
 
-icon1 = addIcon("SD", {item = 3155}, autoSDMacro)
+icon1 = addIcon("SD", {item = itemIdSd}, autoSDMacro)
 icon1:breakAnchors()
 icon1:move(260, 100)
 icon1:setText("100")
@@ -26,8 +32,10 @@ local dropItems = {
 
 local maxStackedItems = 10
 
-gpAntiPushDrop = macro(150 , "anti push", function ()
-	antiPush()
+gpAntiPushDrop = macro(200 , "anti push", function ()
+	if hppercent() > lifeHealBot and manapercent() > manaHealBot then
+		antiPush()
+	end
 end)
 
 onPlayerPositionChange(function()
@@ -63,9 +71,9 @@ icon2:setText("100")
 -----------------------   UTITO TEMPO   --------------------------------
 
 utitoTempoMacro = macro(3000, 'Utito Tempo', function()
-	if hppercent() > 70 then
+	if hppercent() > lifeHealBot then
 		if not hasPartyBuff() and not isInPz() then
-			if manapercent() > 75 then
+			if manapercent() > manaHealBot then
 				say('utito tempo')
 			end
 		end
@@ -79,16 +87,17 @@ icon3:setText("100")
 
 -----------------------   POTION EXP   --------------------------------
 
+local itemIdExpPotion = 11980
+
 expPotionMacro = macro(30000, 'Potion XP', function()
-	if hppercent() > 70 then
-		local item = findItem(11980)
-		if item and g_game.isAttacking() then
-			use(11980)
+	if hppercent() > lifeHealBot then
+		if not isInPz() then
+			use(itemIdExpPotion)
 		end
 	end
 end)
 
-icon4 = addIcon("Potion XP", {item = 11980}, expPotionMacro)
+icon4 = addIcon("Potion XP", {item = itemIdExpPotion}, expPotionMacro)
 icon4:breakAnchors()
 icon4:move(210, 300)
 icon4:setText("100")
@@ -96,13 +105,13 @@ icon4:setText("100")
 -----------------------   EK ATTACK   --------------------------------
 
 ekAttackMacro = macro(1000, "EK ATTACK", function()
-	if hppercent() > 70 then
-		if manapercent() > 75 and g_game.isAttacking() then
-			if getMonsters(1) > 1 then
-				say("exori gran")
-			else
-				say("exori hur")
-			end
+	if hppercent() > lifeHealBot then
+		if manapercent() > manaHealBot and g_game.isAttacking() then
+			--if getMonsters(1) > 1 then
+				say("exori dead")
+			--else
+				--say("exori hur")
+			--end
 		end
 	end
 end)
@@ -117,7 +126,7 @@ icon5:setText("100")
 local horas = 40
 
 staminaRestoreMacro = macro(30000, "Stamina", function()
-	if hppercent() > 70 then
+	if hppercent() > lifeHealBot then
 		if not isInPz() and stamina() < (horas * 60) then
 			use(11372)
 		end
@@ -132,11 +141,11 @@ icon6:setText("100")
 -----------------------   EXP BOOSTER   --------------------------------
 
 expBoosterMacro = macro(30000, "Exp Booster", function()
-	if hppercent() > 70 then
+	if hppercent() > lifeHealBot then
 		local boosterIdInative = 3997
 		local boosterIdAtive = 4010
 		local ativado = findItem(boosterIdAtive)
-		if not ativado and not isInPz() and g_game.isAttacking() then
+		if not ativado and not isInPz() then
 			use(boosterIdInative)
 		end
 	end
@@ -149,14 +158,11 @@ icon7:setText("100")
 
 -----------------------   HEAL MAGE   --------------------------------
 
-local minPercentHP = 90
-local minPercentMANA = 85
-
 healMageMacro = macro(100, "HEAL MAGE", function()
-	if hppercent() < minPercentHP then
+	if hppercent() < lifeHealBot then
 		say("exura vita")
 	else
-		if manapercent() < minPercentMANA then
+		if manapercent() < manaHealBot then
 			g_game.useInventoryItemWith(3162, player)
 		end
 	end
@@ -169,14 +175,11 @@ icon8:setText("100")
 
 -----------------------   HEAL EK   --------------------------------
 
-local ekMinPercentHP = 70
-local ekMinPercentMANA = 90
-
 healEkMacro = macro(100, "HEAL EK", function()
-	if hppercent() < ekMinPercentHP then
+	if hppercent() < lifeHealBot then
 		g_game.useInventoryItemWith(3163, player)
 	else
-		if manapercent() < ekMinPercentMANA then
+		if manapercent() < manaHealBot then
 			g_game.useInventoryItemWith(3163, player)
 		end
 	end
@@ -190,8 +193,8 @@ icon9:setText("100")
 -----------------------   ED ATTACK   --------------------------------
 
 edAttackMacro = macro(1000, "ED ATTACK", function()
-	if hppercent() > 90 then
-		if manapercent() > 75 and g_game.isAttacking() then
+	if hppercent() > lifeHealBot then
+		if manapercent() > manaHealBot and g_game.isAttacking() then
 			say("demonic pox")
 		end
 	end
@@ -208,7 +211,7 @@ local itemIdKnife = 5908
 local corposQueUsamAKnife = {3090, 5969, 2871, 5982, 2866, 5981, 2876, 5983, 4259, 6040, 4262, 6041, 4256, 4251, 11285, 11288, 11277, 11280, 11280, 11269, 11272, 11281, 11284, 3104, 5973, 2881, 5984, 2931, 5999, 3031, 6030, 11343}
 
 obsidianKnifeMacro = macro(500, "OB. KNIFE", function()
-	if hppercent() > 50 then
+	if hppercent() > lifeHealBot then
 		for i, tile in ipairs(g_map.getTiles(posz())) do
 			for u, item in ipairs(tile:getItems()) do
 				if table.find(corposQueUsamAKnife, item:getId()) then
@@ -230,7 +233,7 @@ local itemIdStake = 5942
 local corposQueUsamAStake = {2916, 5995, 2956, 6006, 9654, 9660}
 
 blessedStakeMacro = macro(500, "BLESSED STAKE", function()
-	if hppercent() > 50 then
+	if hppercent() > lifeHealBot then
 		for i, tile in ipairs(g_map.getTiles(posz())) do
 			for u, item in ipairs(tile:getItems()) do
 				if table.find(corposQueUsamAStake, item:getId()) then

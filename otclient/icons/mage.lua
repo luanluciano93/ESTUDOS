@@ -2,24 +2,45 @@
 -- se for MAGE, indico a deixar 90 de life e 80 de mana (baseado na holy mana rune)
 -- se for EK, indico a deixar 70 de life e 85 de mana (baseado na holy life rune)
 
-local lifeHealBot = 90
+local lifeHealBot = 85
 local manaHealBot = 80
+local spellHeal = "exura vita" -- exura vita
+local runeHeal = 3162 -- holy life rune (lvl 400)
+local spellAttack = "demonic pox" -- (lvl 800)
+local itemIdExpPotion = 11980
+local spellHaste = "utani gran hur"
 
------------------------	 HEAL MAGE	 --------------------------------
+-----------------------   HEAL  --------------------------------
 
-healMageMacro = macro(100, "HEAL MAGE", function()
+healMacro = macro(1, "HEAL", function()
 	if hppercent() < lifeHealBot then
-		say("exura vita")
+		g_game.useInventoryItemWith(runeHeal, player)
+		if manapercent() > manaHealBot then
+			say(spellHeal)
+		end
 	else
 		if manapercent() < manaHealBot then
-			g_game.useInventoryItemWith(3162, player)
+			g_game.useInventoryItemWith(runeHeal, player)
 		end
 	end
 end)
 
-icon1 = addIcon("HEAL MAGE", {item = 3162}, healMageMacro)
-icon1:breakAnchors()
-icon1:move(210, 100)
+iconHeal = addIcon("HEAL", {item = runeHeal}, healMacro)
+iconHeal:breakAnchors()
+iconHeal:move(210, 100)
+
+-----------------------   HASTE   --------------------------------
+
+haste = macro(500, "HASTE", function()
+	if hppercent() > lifeHealBot and manapercent() > manaHealBot and not hasHaste() then
+		say(spellHaste)
+		delay(5000)
+	end
+end)
+
+iconHaste = addIcon("HASTE", {item = 3079}, haste)
+iconHaste:breakAnchors()
+iconHaste:move(260, 100)
 
 -----------------------	 AUTO SD	 --------------------------------
 
@@ -31,44 +52,48 @@ autoSDMacro = macro(1000, "SD", function()
 		local sd = findItem(itemIdSd)
 		if target and sd then
 			g_game.useWith(sd, target)
+				
+	  
 		end
 	end
 end)
 
-icon2 = addIcon("SD", {item = itemIdSd}, autoSDMacro)
-icon2:breakAnchors()
-icon2:move(260, 100)
+iconSd = addIcon("SD", {item = itemIdSd}, autoSDMacro)
+iconSd:breakAnchors()
+iconSd:move(310, 100)
 
------------------------	 ED ATTACK FULL	--------------------------------
+-----------------------	 ATTACK FULL	--------------------------------
 
-edAttackFullMacro = macro(500, "ED ATTACK FULL", function()
+attackFullMacro = macro(500, "ATTACK FULL", function()
 	if hppercent() > lifeHealBot then
 		if manapercent() > manaHealBot then
-			say("demonic pox")
+			say(spellAttack)
 		end
 	end
 end)
 
-icon3 = addIcon("ED ATTACK FULL", {text = "Demonic FULL"}, edAttackFullMacro)
-icon3:breakAnchors()
-icon3:move(280, 150)
+iconFullAtk = addIcon("ATTACK FULL", {text = "Atk FULL"}, attackFullMacro)
+iconFullAtk:breakAnchors()
+iconFullAtk:move(280, 150)
 
------------------------	 ED ATTACK TARGET	--------------------------------
+-----------------------	 ATTACK TARGET	--------------------------------
 
-edAttackMacro = macro(1000, "ED ATTACK TARGET", function()
-	if edAttackFullMacro.isOn() then return true end
+attackMacro = macro(1000, "ATTACK TARGET", function()
+	if attackFullMacro.isOn() then
+		return true
+	end
 	if hppercent() > lifeHealBot then
 		if manapercent() > manaHealBot and g_game.isAttacking() then
-			say("demonic pox")
+			say(spellAttack)
 		end
 	end
 end)
 
-icon4 = addIcon("ED ATK TARGET", {text = "Demonic Target"}, edAttackMacro)
-icon4:breakAnchors()
-icon4:move(210, 150)
+iconAtk = addIcon("ATK TARGET", {text = "Atk Target"}, attackMacro)
+iconAtk:breakAnchors()
+iconAtk:move(210, 150)
 
------------------------	 ANTI-PUSH	 --------------------------------
+-----------------------	 ANTI-PUSH	--------------------------------
 
 local dropItems = {
 	3035,
@@ -108,31 +133,30 @@ function antiPush()
 	end
 end
 
-icon5 = addIcon("anti push", {item = 3035, hotkey = "INSERT"}, gpAntiPushDrop)
-icon5:breakAnchors()
-icon5:move(210, 310)
+iconAntiPush = addIcon("anti push", {item = 3035, hotkey = "INSERT"}, gpAntiPushDrop)
+iconAntiPush:breakAnchors()
+iconAntiPush:move(210, 310)
 
 -----------------------	 POTION EXP	 --------------------------------
 
-local itemIdExpPotion = 11980
-
-expPotionMacro = macro(30000, 'Potion XP', function()
+expPotionMacro = macro(10000, 'Potion XP', function()
 	if hppercent() > lifeHealBot then
 		if not isInPz() then
 			use(itemIdExpPotion)
+			delay(3600000)
 		end
 	end
 end)
 
-icon6 = addIcon("Potion XP", {item = itemIdExpPotion}, expPotionMacro)
-icon6:breakAnchors()
-icon6:move(210, 240)
+iconPotionXp = addIcon("Potion XP", {item = itemIdExpPotion}, expPotionMacro)
+iconPotionXp:breakAnchors()
+iconPotionXp:move(210, 240)
 
 -----------------------	 STAMINA RESTORE	 --------------------------------
 
 local horas = 40
 
-staminaRestoreMacro = macro(30000, "Stamina", function()
+staminaRestoreMacro = macro(10000, "Stamina", function()
 	if hppercent() > lifeHealBot then
 		if not isInPz() and stamina() < (horas * 60) then
 			use(11372)
@@ -140,26 +164,28 @@ staminaRestoreMacro = macro(30000, "Stamina", function()
 	end
 end)
 
-icon7 = addIcon("Stamina", {item = 11372}, staminaRestoreMacro)
-icon7:breakAnchors()
-icon7:move(260, 240)
+iconStaminaRestore = addIcon("Stamina", {item = 11372}, staminaRestoreMacro)
+iconStaminaRestore:breakAnchors()
+iconStaminaRestore:move(260, 240)
 
------------------------	 EXP BOOSTER	 --------------------------------
+-----------------------   EXP BOOSTER   --------------------------------
 
-expBoosterMacro = macro(30000, "Exp Booster", function()
+local boosterIdInative = 3997
+local boosterIdAtive = 4010
+
+expBoosterMacro = macro(10000, "Exp Booster", function()
 	if hppercent() > lifeHealBot then
-		local boosterIdInative = 3997
-		local boosterIdAtive = 4010
 		local ativado = findItem(boosterIdAtive)
 		if not ativado and not isInPz() then
 			use(boosterIdInative)
+			delay(3600000)
 		end
 	end
 end)
 
-icon8 = addIcon("Exp Booster", {item = 3997}, expBoosterMacro)
-icon8:breakAnchors()
-icon8:move(310, 240)
+iconBooster = addIcon("Exp Booster", {item = boosterIdInative}, expBoosterMacro)
+iconBooster:breakAnchors()
+iconBooster:move(310, 240)
 
 -----------------------	 OBSIDIAN KNIFE	 --------------------------------
 
@@ -178,9 +204,9 @@ obsidianKnifeMacro = macro(500, "OB. KNIFE", function()
 	end
 end)
 
-icon9 = addIcon("OB. KNIFE", {item = itemIdKnife}, obsidianKnifeMacro)
-icon9:breakAnchors()
-icon9:move(210, 380)
+iconKnife = addIcon("OB. KNIFE", {item = itemIdKnife}, obsidianKnifeMacro)
+iconKnife:breakAnchors()
+iconKnife:move(210, 380)
 
 -----------------------	 BLESSED WOODEN STAKE	 --------------------------------
 
@@ -199,8 +225,8 @@ blessedStakeMacro = macro(500, "BLESSED STAKE", function()
 	end
 end)
 
-icon10 = addIcon("BLESSED STAKE", {item = itemIdStake}, blessedStakeMacro)
-icon10:breakAnchors()
-icon10:move(260, 380)
+iconStake = addIcon("BLESSED STAKE", {item = itemIdStake}, blessedStakeMacro)
+iconStake:breakAnchors()
+iconStake:move(260, 380)
 
 ------------------------------------

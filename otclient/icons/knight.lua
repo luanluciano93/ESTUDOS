@@ -31,18 +31,15 @@ iconHeal:move(210, 100)
 
 -----------------------   HASTE   --------------------------------
 
-haste = macro(500, "HASTE", function()
-	if hppercent() > lifeHealBot and manapercent() > manaHealBot and not hasHaste() then
+haste = macro(1000, "HASTE", function()
+	if (hppercent() > lifeHealBot and manapercent() > manaHealBot and not hasHaste()) or (hppercent() > lifeHealBot and isParalyzed()) then
 		say(spellHaste)
-		delay(5000)
 	end
 end)
 
 iconHaste = addIcon("HASTE", {item = 3079}, haste)
 iconHaste:breakAnchors()
-iconHaste:move(260, 100)
-
-																  
+iconHaste:move(260, 100)																  
 
 -----------------------   UTITO TEMPO   --------------------------------
 

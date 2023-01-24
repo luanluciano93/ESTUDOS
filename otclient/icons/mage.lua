@@ -31,10 +31,9 @@ iconHeal:move(210, 100)
 
 -----------------------   HASTE   --------------------------------
 
-haste = macro(500, "HASTE", function()
-	if hppercent() > lifeHealBot and manapercent() > manaHealBot and not hasHaste() then
+haste = macro(1000, "HASTE", function()
+	if (hppercent() > lifeHealBot and manapercent() > manaHealBot and not hasHaste()) or (hppercent() > lifeHealBot and isParalyzed()) then
 		say(spellHaste)
-		delay(5000)
 	end
 end)
 

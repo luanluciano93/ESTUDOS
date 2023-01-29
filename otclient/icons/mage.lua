@@ -2,8 +2,8 @@
 -- se for MAGE, indico a deixar 90 de life e 80 de mana (baseado na holy mana rune)
 -- se for EK, indico a deixar 70 de life e 85 de mana (baseado na holy life rune)
 
-local lifeHealBot = 85
-local manaHealBot = 80
+local lifeHealBot = 90
+local manaHealBot = 85
 local spellHeal = "exura vita" -- exura vita
 local runeHeal = 3162 -- holy life rune (lvl 400)
 local spellAttack = "demonic pox" -- (lvl 800)
@@ -31,8 +31,8 @@ iconHeal:move(210, 100)
 
 -----------------------   HASTE   --------------------------------
 
-haste = macro(1000, "HASTE", function()
-	if (hppercent() > lifeHealBot and manapercent() > manaHealBot and not hasHaste()) or (hppercent() > lifeHealBot and isParalyzed()) then
+haste = macro(500, "HASTE", function()
+	if (hppercent() > lifeHealBot and not hasHaste()) or isParalyzed() then
 		say(spellHaste)
 	end
 end)
@@ -40,6 +40,18 @@ end)
 iconHaste = addIcon("HASTE", {item = 3079}, haste)
 iconHaste:breakAnchors()
 iconHaste:move(260, 100)
+
+-----------------------   UTAMO VITA   --------------------------------
+
+utamoVita = macro(100, "UTAMO VITA", function()
+	if not hasManaShield() then
+		say("utamo vita")
+	end
+end)
+
+iconUtamo = addIcon("UTAMO VITA", {item = 11830}, utamoVita)
+iconUtamo:breakAnchors()
+iconUtamo:move(310, 100)
 
 -----------------------	 AUTO SD	 --------------------------------
 
@@ -51,15 +63,13 @@ autoSDMacro = macro(1000, "SD", function()
 		local sd = findItem(itemIdSd)
 		if target and sd then
 			g_game.useWith(sd, target)
-				
-	  
 		end
 	end
 end)
 
 iconSd = addIcon("SD", {item = itemIdSd}, autoSDMacro)
 iconSd:breakAnchors()
-iconSd:move(310, 100)
+iconSd:move(210, 170)
 
 -----------------------	 ATTACK FULL	--------------------------------
 
@@ -73,7 +83,7 @@ end)
 
 iconFullAtk = addIcon("ATTACK FULL", {text = "Atk FULL"}, attackFullMacro)
 iconFullAtk:breakAnchors()
-iconFullAtk:move(280, 150)
+iconFullAtk:move(320, 150)
 
 -----------------------	 ATTACK TARGET	--------------------------------
 
@@ -90,7 +100,7 @@ end)
 
 iconAtk = addIcon("ATK TARGET", {text = "Atk Target"}, attackMacro)
 iconAtk:breakAnchors()
-iconAtk:move(210, 150)
+iconAtk:move(260, 150)
 
 -----------------------	 ANTI-PUSH	--------------------------------
 
@@ -136,13 +146,43 @@ iconAntiPush = addIcon("anti push", {item = 3035, hotkey = "INSERT"}, gpAntiPush
 iconAntiPush:breakAnchors()
 iconAntiPush:move(210, 310)
 
+-----------------------	 FULL PARALIZE RUNE	 --------------------------------
+
+local paralizeRuneId = 3165
+
+paralizeRuneMacro = macro(1500, 'Full Paralize Rune', function()
+	if hppercent() > lifeHealBot and manapercent() > manaHealBot and not isInPz() then
+		local target = g_game.getAttackingCreature()
+		if target then
+			useWith(paralizeRuneId, target)
+		end
+	end
+end)
+
+iconParalizeRune = addIcon("Full Paralize Rune", {item = paralizeRuneId}, paralizeRuneMacro)
+iconParalizeRune:breakAnchors()
+iconParalizeRune:move(210, 440)
+
+-----------------------	 FULL FIRE BOMB	 --------------------------------
+
+local fireBombRuneId = 3192
+
+fireBombMacro = macro(1000, 'Full Fire Bomb', function()
+	if hppercent() > lifeHealBot and manapercent() > manaHealBot and not isInPz() then
+		useWith(fireBombRuneId, player)
+	end
+end)
+
+iconFireBomb = addIcon("Full Fire Bomb", {item = fireBombRuneId}, fireBombMacro)
+iconFireBomb:breakAnchors()
+iconFireBomb:move(260, 440)
+
 -----------------------	 POTION EXP	 --------------------------------
 
-expPotionMacro = macro(10000, 'Potion XP', function()
+expPotionMacro = macro(60000, 'Potion XP', function()
 	if hppercent() > lifeHealBot then
 		if not isInPz() then
 			use(itemIdExpPotion)
-			delay(3600000)
 		end
 	end
 end)
@@ -155,7 +195,7 @@ iconPotionXp:move(210, 240)
 
 local horas = 40
 
-staminaRestoreMacro = macro(10000, "Stamina", function()
+staminaRestoreMacro = macro(60000, "Stamina", function()
 	if hppercent() > lifeHealBot then
 		if not isInPz() and stamina() < (horas * 60) then
 			use(11372)
@@ -172,12 +212,11 @@ iconStaminaRestore:move(260, 240)
 local boosterIdInative = 3997
 local boosterIdAtive = 4010
 
-expBoosterMacro = macro(10000, "Exp Booster", function()
+expBoosterMacro = macro(60000, "Exp Booster", function()
 	if hppercent() > lifeHealBot then
 		local ativado = findItem(boosterIdAtive)
 		if not ativado and not isInPz() then
 			use(boosterIdInative)
-			delay(3600000)
 		end
 	end
 end)
@@ -192,7 +231,7 @@ local itemIdKnife = 5908
 local corposQueUsamAKnife = {3090, 5969, 2871, 5982, 2866, 5981, 2876, 5983, 4259, 6040, 4262, 6041, 4256, 4251, 11285, 11288, 11277, 11280, 11280, 11269, 11272, 11281, 11284, 3104, 5973, 2881, 5984, 2931, 5999, 3031, 6030, 11343}
 
 obsidianKnifeMacro = macro(500, "OB. KNIFE", function()
-	if hppercent() > lifeHealBot then
+	if hppercent() > lifeHealBot and manapercent() > manaHealBot then
 		for i, tile in ipairs(g_map.getTiles(posz())) do
 			for u, item in ipairs(tile:getItems()) do
 				if table.find(corposQueUsamAKnife, item:getId()) then
@@ -213,7 +252,7 @@ local itemIdStake = 5942
 local corposQueUsamAStake = {2916, 5995, 2956, 6006, 9654, 9660}
 
 blessedStakeMacro = macro(500, "BLESSED STAKE", function()
-	if hppercent() > lifeHealBot then
+	if hppercent() > lifeHealBot and manapercent() > manaHealBot then
 		for i, tile in ipairs(g_map.getTiles(posz())) do
 			for u, item in ipairs(tile:getItems()) do
 				if table.find(corposQueUsamAStake, item:getId()) then

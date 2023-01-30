@@ -74,7 +74,7 @@ iconSd:move(210, 170)
 -----------------------	 ATTACK FULL	--------------------------------
 
 attackFullMacro = macro(500, "ATTACK FULL", function()
-	if hppercent() > lifeHealBot then
+	if hppercent() > lifeHealBot and not isInPz() then
 		if manapercent() > manaHealBot then
 			say(spellAttack)
 		end
@@ -91,7 +91,7 @@ attackMacro = macro(1000, "ATTACK TARGET", function()
 	if attackFullMacro.isOn() then
 		return true
 	end
-	if hppercent() > lifeHealBot then
+	if hppercent() > lifeHealBot and not isInPz() then
 		if manapercent() > manaHealBot and g_game.isAttacking() then
 			say(spellAttack)
 		end
@@ -161,9 +161,9 @@ end)
 
 iconParalizeRune = addIcon("Full Paralize Rune", {item = paralizeRuneId}, paralizeRuneMacro)
 iconParalizeRune:breakAnchors()
-iconParalizeRune:move(210, 440)
+iconParalizeRune:move(260, 440)
 
------------------------	 FULL FIRE BOMB	 --------------------------------
+-----------------------   FULL FIRE BOMB   --------------------------------
 
 local fireBombRuneId = 3192
 
@@ -175,15 +175,13 @@ end)
 
 iconFireBomb = addIcon("Full Fire Bomb", {item = fireBombRuneId}, fireBombMacro)
 iconFireBomb:breakAnchors()
-iconFireBomb:move(260, 440)
+iconFireBomb:move(210, 440)
 
------------------------	 POTION EXP	 --------------------------------
+-----------------------   POTION EXP   --------------------------------
 
 expPotionMacro = macro(60000, 'Potion XP', function()
-	if hppercent() > lifeHealBot then
-		if not isInPz() then
-			use(itemIdExpPotion)
-		end
+	if hppercent() > lifeHealBot and not isInPz() then
+		use(itemIdExpPotion)
 	end
 end)
 
@@ -196,8 +194,8 @@ iconPotionXp:move(210, 240)
 local horas = 40
 
 staminaRestoreMacro = macro(60000, "Stamina", function()
-	if hppercent() > lifeHealBot then
-		if not isInPz() and stamina() < (horas * 60) then
+	if hppercent() > lifeHealBot and not isInPz() then
+		if stamina() < (horas * 60) then
 			use(11372)
 		end
 	end
@@ -213,9 +211,9 @@ local boosterIdInative = 3997
 local boosterIdAtive = 4010
 
 expBoosterMacro = macro(60000, "Exp Booster", function()
-	if hppercent() > lifeHealBot then
+	if hppercent() > lifeHealBot and not isInPz() then
 		local ativado = findItem(boosterIdAtive)
-		if not ativado and not isInPz() then
+		if not ativado then
 			use(boosterIdInative)
 		end
 	end

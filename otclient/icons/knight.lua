@@ -9,6 +9,7 @@ local runeHeal = 3163 -- holy life rune (lvl 400)
 local spellAttack = "dead exori" -- (lvl 800)
 local itemIdExpPotion = 11980
 local spellHaste = "utani hur"
+local spellUtito = "utito tempo"
 
 -----------------------   HEAL  --------------------------------
 
@@ -46,9 +47,8 @@ iconHaste:move(260, 100)
 utitoTempoMacro = macro(1000, 'Utito Tempo', function()
 	if hppercent() > lifeHealBot then
 		if not hasPartyBuff() and not isInPz() then
-							   
 			if manapercent() > manaHealBot then
-				say('utito tempo')
+				say(spellUtito)
 				delay(10000)
 			end
 		end
@@ -164,7 +164,7 @@ iconPotionXp:move(210, 240)
 
 local horas = 40
 
-staminaRestoreMacro = macro(60000, "Stamina", function()
+staminaRestoreMacro = macro(20000, "Stamina", function()
 	if hppercent() > lifeHealBot and not isInPz() then
 		if stamina() < (horas * 60) then
 			use(11372)
@@ -181,7 +181,7 @@ iconStaminaRestore:move(260, 240)
 local boosterIdInative = 3997
 local boosterIdAtive = 4010
 
-expBoosterMacro = macro(60000, "Exp Booster", function()
+expBoosterMacro = macro(20000, "Exp Booster", function()
 	if hppercent() > lifeHealBot and not isInPz() then
 		local ativado = findItem(boosterIdAtive)
 		if not ativado then

@@ -2,26 +2,52 @@
 -- se for MAGE, indico a deixar 90 de life e 80 de mana (baseado na holy mana rune)
 -- se for EK, indico a deixar 70 de life e 85 de mana (baseado na holy life rune)
 
-local lifeHealBot = 90
+local lifeHealBot = 80
 local manaHealBot = 85
+local safeUtamo = true
+local lowLifeUseUtamo = 15
+local lowManaRemoveUtamo = 10
+local isDruid = true
 local spellHeal = "exura vita" -- exura vita
 local runeHeal = 3162 -- holy life rune (lvl 400)
 local spellAttack = "demonic pox" -- (lvl 800)
 local itemIdExpPotion = 11980
 local spellHaste = "utani gran hur"
 
+-----------------------   UTAMO VITA   --------------------------------
+
+utamoVita = macro(100, "UTAMO VITA", function()
+	if not hasManaShield() then
+		say("utamo vita")
+	end
+end)
+
+iconUtamo = addIcon("UTAMO VITA", {item = 11830}, utamoVita)
+iconUtamo:breakAnchors()
+iconUtamo:move(310, 100)
+
 -----------------------   HEAL  --------------------------------
 
-healMacro = macro(1, "HEAL", function()
+healMacro = macro(2, "HEAL", function()
 	if hppercent() < lifeHealBot then
+		if safeUtamo and utamoVita.isOff() and hppercent() < lowLifeUseUtamo and manapercent() > lowManaRemoveUtamo and not hasManaShield() then
+			say("utamo vita")
+		else
+			if isDruid then
+				say('exura sio "' .. player:getName())
+			else
+				say(spellHeal)
+			end
+		end
+	end
+
+	if manapercent() < manaHealBot then
+		if safeUtamo and utamoVita.isOff() and manapercent() < lowManaRemoveUtamo and hasManaShield() then
+			say("exana vita")
+		end
 		g_game.useInventoryItemWith(runeHeal, player)
-		if manapercent() > manaHealBot then
-			say(spellHeal)
-		end
-	else
-		if manapercent() < manaHealBot then
-			g_game.useInventoryItemWith(runeHeal, player)
-		end
+	elseif safeUtamo and utamoVita.isOff() and manapercent() > manaHealBot and hasManaShield() then
+		say("exana vita")
 	end
 end)
 
@@ -40,18 +66,6 @@ end)
 iconHaste = addIcon("HASTE", {item = 3079}, haste)
 iconHaste:breakAnchors()
 iconHaste:move(260, 100)
-
------------------------   UTAMO VITA   --------------------------------
-
-utamoVita = macro(100, "UTAMO VITA", function()
-	if not hasManaShield() then
-		say("utamo vita")
-	end
-end)
-
-iconUtamo = addIcon("UTAMO VITA", {item = 11830}, utamoVita)
-iconUtamo:breakAnchors()
-iconUtamo:move(310, 100)
 
 -----------------------	 AUTO SD	 --------------------------------
 
@@ -265,4 +279,4 @@ iconStake = addIcon("BLESSED STAKE", {item = itemIdStake}, blessedStakeMacro)
 iconStake:breakAnchors()
 iconStake:move(260, 380)
 
-------------------------------------
+-----------------------------------------------------------------------------

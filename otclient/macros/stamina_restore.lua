@@ -3,8 +3,8 @@ local horasRestaurar = 40
 
 macro(1000, "use stamina restore",  function()
 	if not isInPz() then
-		if stamina() < (storage.horasRestore * 60) then
-			use(storage.staminaItem)
+		if stamina() < ((storage.horasRestore or horasRestaurar) * 60) then
+			use(storage.staminaItem or itemId)
 		end
 	end
 end)

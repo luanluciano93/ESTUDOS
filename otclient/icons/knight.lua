@@ -10,18 +10,15 @@ local spellAttack = "dead exori" -- (lvl 800)
 local itemIdExpPotion = 11980
 local spellHaste = "utani hur"
 local spellUtito = "utito tempo"
+local sayBlessing = "!holybless"
 
 -----------------------   HEAL  --------------------------------
 
-healMacro = macro(1, "HEAL", function()
+healMacro = macro(2, "HEAL", function()
 	if hppercent() < lifeHealBot then
 		g_game.useInventoryItemWith(runeHeal, player)
 		if manapercent() > manaHealBot then
 			say(spellHeal)
-		end
-	else
-		if manapercent() < manaHealBot then
-			g_game.useInventoryItemWith(runeHeal, player)
 		end
 	end
 end)
@@ -150,8 +147,8 @@ iconFireBomb:move(210, 440)
 
 -----------------------   POTION EXP   --------------------------------
 
-expPotionMacro = macro(60000, 'Potion XP', function()
-	if hppercent() > lifeHealBot and not isInPz() then
+expPotionMacro = macro(10000, 'Potion XP', function()
+	if not isInPz() then
 		use(itemIdExpPotion)
 	end
 end)
@@ -164,8 +161,8 @@ iconPotionXp:move(210, 240)
 
 local horas = 40
 
-staminaRestoreMacro = macro(20000, "Stamina", function()
-	if hppercent() > lifeHealBot and not isInPz() then
+staminaRestoreMacro = macro(10000, "Stamina", function()
+	if not isInPz() then
 		if stamina() < (horas * 60) then
 			use(11372)
 		end
@@ -182,7 +179,7 @@ local boosterIdInative = 3997
 local boosterIdAtive = 4010
 
 expBoosterMacro = macro(20000, "Exp Booster", function()
-	if hppercent() > lifeHealBot and not isInPz() then
+	if not isInPz() then
 		local ativado = findItem(boosterIdAtive)
 		if not ativado then
 			use(boosterIdInative)
@@ -236,4 +233,21 @@ iconStake = addIcon("BLESSED STAKE", {item = itemIdStake}, blessedStakeMacro)
 iconStake:breakAnchors()
 iconStake:move(260, 380)
 
-------------------------------------
+-----------------------------------------------------------------------------
+
+buybless = macro(5000, "Bless", function()
+	if isInPz() then
+		say(sayBlessing)
+	end
+	onTextMessage(function(mode, text)
+		if string.find(text, "You already have all") then
+			buybless.setOff(isOn)
+		end
+	end)
+end)
+
+macro(5000, function()
+    if not isInPz() then
+        buybless.setOn(isOff)
+    end
+end)

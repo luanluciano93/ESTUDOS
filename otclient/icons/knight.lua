@@ -20,6 +20,10 @@ healMacro = macro(2, "HEAL", function()
 		if manapercent() > manaHealBot then
 			say(spellHeal)
 		end
+	else
+		if manapercent() < manaHealBot then
+			g_game.useInventoryItemWith(runeHeal, player)
+		end
 	end
 end)
 

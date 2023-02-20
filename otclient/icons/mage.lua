@@ -206,13 +206,9 @@ iconPotionXp:move(210, 240)
 
 -----------------------	 STAMINA RESTORE	 --------------------------------
 
-local horas = 40
-
 staminaRestoreMacro = macro(10000, "Stamina", function()
 	if not isInPz() then
-		if stamina() < (horas * 60) then
-			use(11372)
-		end
+		use(11372)
 	end
 end)
 

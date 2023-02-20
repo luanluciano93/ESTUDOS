@@ -14,6 +14,7 @@ local spellAttack = "demonic pox" -- (lvl 800)
 local itemIdExpPotion = 11980
 local spellHaste = "utani gran hur"
 local sayBlessing = "!holybless"
+local preyCreature = "ferumbras"
 
 -----------------------   UTAMO VITA   --------------------------------
 
@@ -194,7 +195,7 @@ iconFireBomb:move(210, 440)
 
 -----------------------   POTION EXP   --------------------------------
 
-expPotionMacro = macro(10000, 'Potion XP', function()
+expPotionMacro = macro(60000, 'Potion XP', function()
 	if not isInPz() then
 		use(itemIdExpPotion)
 	end
@@ -206,7 +207,7 @@ iconPotionXp:move(210, 240)
 
 -----------------------	 STAMINA RESTORE	 --------------------------------
 
-staminaRestoreMacro = macro(10000, "Stamina", function()
+staminaRestoreMacro = macro(60000, "Stamina", function()
 	if not isInPz() then
 		use(11372)
 	end
@@ -221,7 +222,7 @@ iconStaminaRestore:move(260, 240)
 local boosterIdInative = 3997
 local boosterIdAtive = 4010
 
-expBoosterMacro = macro(10000, "Exp Booster", function()
+expBoosterMacro = macro(60000, "Exp Booster", function()
 	if not isInPz() then
 		local ativado = findItem(boosterIdAtive)
 		if not ativado then
@@ -275,6 +276,42 @@ end)
 iconStake = addIcon("BLESSED STAKE", {item = itemIdStake}, blessedStakeMacro)
 iconStake:breakAnchors()
 iconStake:move(260, 380)
+
+-----------------------   PREY   --------------------------------
+
+preyFreeMacro = macro(60000, "Prey Free", function()
+  if not isInPz() then
+        say("!prey free, prey token, " .. preyCreature .."")
+  end
+end)
+
+iconPreyFree = addIcon("Prey Free", {item = 14086}, preyFreeMacro)
+iconPreyFree:breakAnchors()
+iconPreyFree:move(210, 500)
+
+-----------------------   PREY   --------------------------------
+
+preyVipMacro = macro(63000, "Prey Vip", function()
+  if not isInPz() then
+        say("!prey vip, prey token, " .. preyCreature .."")
+  end
+end)
+
+iconPreyVip = addIcon("Prey Vip", {item = 14086}, preyVipMacro)
+iconPreyVip:breakAnchors()
+iconPreyVip:move(260, 500)
+
+-----------------------   PREY   --------------------------------
+
+preyDonateMacro = macro(66000, "Prey Donate", function()
+  if not isInPz() then
+        say("!prey donate, prey token, " .. preyCreature .."")
+  end
+end)
+
+iconPreyDonate = addIcon("Prey Donate", {item = 14086}, preyDonateMacro)
+iconPreyDonate:breakAnchors()
+iconPreyDonate:move(310, 500)
 
 -----------------------------------------------------------------------------
 

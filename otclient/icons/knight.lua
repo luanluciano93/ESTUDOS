@@ -45,7 +45,7 @@ iconHaste:move(260, 100)
 
 -----------------------   UTITO TEMPO   --------------------------------
 
-utitoTempoMacro = macro(1000, 'Utito Tempo', function()
+utitoTempoMacro = macro(1200, 'Utito Tempo', function()
 	if hppercent() > lifeHealBot then
 		if not hasPartyBuff() and not isInPz() then
 			if manapercent() > manaHealBot then
@@ -151,7 +151,7 @@ iconFireBomb:move(210, 440)
 
 -----------------------   POTION EXP   --------------------------------
 
-expPotionMacro = macro(10000, 'Potion XP', function()
+expPotionMacro = macro(60000, 'Potion XP', function()
 	if not isInPz() then
 		use(itemIdExpPotion)
 	end
@@ -163,7 +163,7 @@ iconPotionXp:move(210, 240)
 
 -----------------------	 STAMINA RESTORE	 --------------------------------
 
-staminaRestoreMacro = macro(10000, "Stamina", function()
+staminaRestoreMacro = macro(59000, "Stamina", function()
 	if not isInPz() then
 		use(11372)
 	end
@@ -178,7 +178,7 @@ iconStaminaRestore:move(260, 240)
 local boosterIdInative = 3997
 local boosterIdAtive = 4010
 
-expBoosterMacro = macro(20000, "Exp Booster", function()
+expBoosterMacro = macro(58000, "Exp Booster", function()
 	if not isInPz() then
 		local ativado = findItem(boosterIdAtive)
 		if not ativado then
@@ -197,12 +197,10 @@ local itemIdKnife = 5908
 local corposQueUsamAKnife = {3090, 5969, 2871, 5982, 2866, 5981, 2876, 5983, 4259, 6040, 4262, 6041, 4256, 4251, 11285, 11288, 11277, 11280, 11280, 11269, 11272, 11281, 11284, 3104, 5973, 2881, 5984, 2931, 5999, 3031, 6030, 11343}
 
 obsidianKnifeMacro = macro(500, "OB. KNIFE", function()
-	if hppercent() > lifeHealBot and manapercent() > manaHealBot then
-		for i, tile in ipairs(g_map.getTiles(posz())) do
-			for u, item in ipairs(tile:getItems()) do
-				if table.find(corposQueUsamAKnife, item:getId()) then
-					useWith(itemIdKnife, item)
-				end
+	for i, tile in ipairs(g_map.getTiles(posz())) do
+		for u, item in ipairs(tile:getItems()) do
+			if table.find(corposQueUsamAKnife, item:getId()) then
+				useWith(itemIdKnife, item)
 			end
 		end
 	end
@@ -218,12 +216,10 @@ local itemIdStake = 5942
 local corposQueUsamAStake = {2916, 5995, 2956, 6006, 9654, 9660}
 
 blessedStakeMacro = macro(500, "BLESSED STAKE", function()
-	if hppercent() > lifeHealBot and manapercent() > manaHealBot then
-		for i, tile in ipairs(g_map.getTiles(posz())) do
-			for u, item in ipairs(tile:getItems()) do
-				if table.find(corposQueUsamAStake, item:getId()) then
-					useWith(itemIdStake, item)
-				end
+	for i, tile in ipairs(g_map.getTiles(posz())) do
+		for u, item in ipairs(tile:getItems()) do
+			if table.find(corposQueUsamAStake, item:getId()) then
+				useWith(itemIdStake, item)
 			end
 		end
 	end
@@ -232,6 +228,42 @@ end)
 iconStake = addIcon("BLESSED STAKE", {item = itemIdStake}, blessedStakeMacro)
 iconStake:breakAnchors()
 iconStake:move(260, 380)
+
+-----------------------   PREY FREE  --------------------------------
+
+preyFreeMacro = macro(60000, "Prey Free", function()
+	if not isInPz() then
+		say("!prey free, prey token, glooth golem")
+	end
+end)
+
+iconPreyFree = addIcon("Prey Free", {item = 14086}, preyFreeMacro)
+iconPreyFree:breakAnchors()
+iconPreyFree:move(210, 500)
+
+-----------------------   PREY VIP   --------------------------------
+
+preyVipMacro = macro(63000, "Prey Vip", function()
+	if not isInPz() then
+		say("!prey vip, prey token, glooth golem")
+	end
+end)
+
+iconPreyVip = addIcon("Prey Vip", {item = 14086}, preyVipMacro)
+iconPreyVip:breakAnchors()
+iconPreyVip:move(260, 500)
+
+-----------------------   PREY DONATE   --------------------------------
+
+preyDonateMacro = macro(66000, "Prey Donate", function()
+	if not isInPz() then
+		say("!prey donate, prey token, glooth golem")
+	end
+end)
+
+iconPreyDonate = addIcon("Prey Donate", {item = 14086}, preyDonateMacro)
+iconPreyDonate:breakAnchors()
+iconPreyDonate:move(310, 500)
 
 -----------------------------------------------------------------------------
 

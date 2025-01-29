@@ -95,5 +95,6 @@ Azzilon, Azzilon Castle and Castle Catacombs.
 ![image](https://github.com/user-attachments/assets/0b29a314-f208-45a3-b4d6-36172bc2f01d)
 
 ## ⭐ New Monsters and Bosses
-![image](https://github.com/user-attachments/assets/585f846e-4dab-482a-93ed-f81609f610d9)
+![image](https://github.com/user-attachments/assets/977488f7-4588-4be4-b746-5af57f9cda83)
+
 

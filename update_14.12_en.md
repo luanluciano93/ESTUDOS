@@ -92,7 +92,7 @@ A small convenience adjustment has also been prepared: you will be able to conve
 Azzilon, Azzilon Castle and Castle Catacombs.
 
 ## ⭐ New Items, Outfits and Mounts
-![image](https://github.com/user-attachments/assets/0b29a314-f208-45a3-b4d6-36172bc2f01d)
+![image](https://github.com/user-attachments/assets/678be1a5-78bd-4d43-b1e3-08eed9c7c695)
 
 ## ⭐ New Monsters and Bosses
 ![image](https://github.com/user-attachments/assets/977488f7-4588-4be4-b746-5af57f9cda83)

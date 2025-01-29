@@ -88,10 +88,12 @@ A small convenience adjustment has also been prepared: you will be able to conve
 
 ![image](https://github.com/user-attachments/assets/30abd5b3-bc14-4bf2-8082-8daf7487d907)
 
-## ⭐ New Hunting Locations
+## ⭐ New Map and Respaws
 Azzilon, Azzilon Castle and Castle Catacombs.
 
+## ⭐ New Items, Outfits and Mounts
+![image](https://github.com/user-attachments/assets/0b29a314-f208-45a3-b4d6-36172bc2f01d)
 
-
-
+## ⭐ New Monsters and Bosses
+![image](https://github.com/user-attachments/assets/585f846e-4dab-482a-93ed-f81609f610d9)
 

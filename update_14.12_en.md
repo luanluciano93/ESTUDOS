@@ -83,6 +83,11 @@ The new Charms system has categorized charms into Major Charms, which offer more
 ![image](https://github.com/user-attachments/assets/069d7da5-20c4-4e68-8e5b-e06c2763ac41)
 ![image](https://github.com/user-attachments/assets/144019b8-ae0d-4cde-b6da-9b34b6d0ab5e)
 
+## ⭐ Convert slivers anywhere
+A small convenience adjustment has also been prepared: you will be able to convert dust and fragments and increase your dust limit wherever you are. Click the Forge of Exaltation control button Forge Button. will open the Conversion tab and allow you to perform these actions without having to visit the forge.
+
+![image](https://github.com/user-attachments/assets/30abd5b3-bc14-4bf2-8082-8daf7487d907)
+
 ## ⭐ New Hunting Locations
 Azzilon, Azzilon Castle and Castle Catacombs.
 

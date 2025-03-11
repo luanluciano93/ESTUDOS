@@ -22,7 +22,7 @@
 
 - ✅ hunted system for canary or tfs 1.4/1.5 nekiro with website integration (system in 1 revscript file) fully optimized for performance and simple configuration.
 
-- ✅ 'tibia.com' layout in znote for canary - stripe payments, paid market and pix, all automatic, payment panel, example: https://silentium.papot.com.br/latestnews.php
+- ✅ 'tibia.com' layout in znote for canary - stripe payments, paid market and pix, all automatic, payment panel, example: https://test.holybaiak.com/latestnews.php
 
 - ✅ podzilla map + respaws + monsters + spell monsters
 

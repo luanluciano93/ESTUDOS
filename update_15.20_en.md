@@ -29,9 +29,9 @@
 - [x] Unhallowed Crypt
 
 ### Novas Quests
-- [ ] [Feral Trapper Outfits Quest](https://www.tibiawiki.com.br/wiki/Feral_Trapper_Outfits_Quest)
-- [ ] [The Order of the Stag Quest](https://www.tibiawiki.com.br/wiki/The_Order_of_the_Stag_Quest)
-- [ ] [The Roost of the Graveborn Quest](https://www.tibiawiki.com.br/wiki/The_Roost_of_the_Graveborn_Quest)
+- [x] [Feral Trapper Outfits Quest](https://www.tibiawiki.com.br/wiki/Feral_Trapper_Outfits_Quest)
+- [x] [The Order of the Stag Quest](https://www.tibiawiki.com.br/wiki/The_Order_of_the_Stag_Quest)
+- [x] [The Roost of the Graveborn Quest](https://www.tibiawiki.com.br/wiki/The_Roost_of_the_Graveborn_Quest)
 
 ### Novos Achievements
 - [x] [Bastard (Achievement)](https://www.tibiawiki.com.br/wiki/Bastard_(Achievement))

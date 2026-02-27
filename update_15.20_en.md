@@ -15,6 +15,7 @@
 - [x] Weekly Tasks
 - [x] Hunting Task Shop
 - [x] 4 News Proficiency Bonus
+- [x] Soulseals in Soulpit
 
 ### Novos Locais de Caça
 - [x] Adaean Crystal Mines
